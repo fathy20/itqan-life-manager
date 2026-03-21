@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-300: #7dd3fc;
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0ea5e9;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+  --color-brand-800: #075985;
+  --color-brand-900: #0c4a6e;
+}
+
+@layer base {
+  body {
+    @apply bg-[#050505] text-white antialiased selection:bg-brand-500/30;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  [dir="rtl"] {
+    font-family: "IBM Plex Sans Arabic", sans-serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl rounded-2xl;
+  }
+  
+  .glass-button {
+    @apply bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] transition-all duration-200 rounded-xl;
+  }
+
+  .nav-item {
+    @apply flex flex-col items-center justify-center gap-1 text-white/40 hover:text-white transition-colors py-2;
+  }
+
+  .nav-item.active {
+    @apply text-brand-400;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20;
+}
