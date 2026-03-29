@@ -1,192 +1,198 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { AppState } from '../types';
-import { INITIAL_DATA } from '../constants';
+import { EMPTY_STATE } from '../constants';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { db, auth } from '../lib/firebase';
 
 interface AppContextType {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
-  addSubject: (subject: Omit<AppState['subjects'][0], 'id'>) => void;
-  updateSubject: (id: string, subject: Partial<AppState['subjects'][0]>) => void;
+  currentUser: User | null;
+  // Subjects
+  addSubject: (s: Omit<AppState['subjects'][0], 'id'>) => void;
+  updateSubject: (id: string, s: Partial<AppState['subjects'][0]>) => void;
   deleteSubject: (id: string) => void;
-  addTask: (task: Omit<AppState['tasks'][0], 'id'>) => void;
-  addTransaction: (transaction: Omit<AppState['transactions'][0], 'id'>) => void;
-  addWishlistItem: (item: Omit<AppState['wishlist'][0], 'id'>) => void;
-  updateWishlistItem: (id: string, item: Partial<AppState['wishlist'][0]>) => void;
+  // Tasks
+  addTask: (t: Omit<AppState['tasks'][0], 'id'>) => void;
+  updateTask: (id: string, t: Partial<AppState['tasks'][0]>) => void;
+  deleteTask: (id: string) => void;
+  // Projects
+  addProject: (p: Omit<AppState['projects'][0], 'id'>) => void;
+  updateProject: (id: string, p: Partial<AppState['projects'][0]>) => void;
+  deleteProject: (id: string) => void;
+  // Courses
+  addCourse: (c: Omit<AppState['courses'][0], 'id'>) => void;
+  updateCourse: (id: string, c: Partial<AppState['courses'][0]>) => void;
+  deleteCourse: (id: string) => void;
+  // Finance
+  addTransaction: (t: Omit<AppState['transactions'][0], 'id'>) => void;
+  deleteTransaction: (id: string) => void;
+  addWishlistItem: (i: Omit<AppState['wishlist'][0], 'id'>) => void;
+  updateWishlistItem: (id: string, i: Partial<AppState['wishlist'][0]>) => void;
   deleteWishlistItem: (id: string) => void;
-  addCommitment: (commitment: Omit<AppState['commitments'][0], 'id'>) => void;
-  updateCommitment: (id: string, commitment: Partial<AppState['commitments'][0]>) => void;
+  addCommitment: (c: Omit<AppState['commitments'][0], 'id'>) => void;
+  updateCommitment: (id: string, c: Partial<AppState['commitments'][0]>) => void;
   deleteCommitment: (id: string) => void;
   setMonthlySalary: (salary: number) => void;
-  updateHabit: (habitId: string, date: string) => void;
+  // Habits
+  addHabit: (h: Omit<AppState['habits'][0], 'id' | 'streak' | 'completedDates'>) => void;
+  updateHabit: (id: string, date: string) => void;
+  deleteHabit: (id: string) => void;
+  // Lifestyle
+  addLifestyleLog: (log: AppState['lifestyleLogs'][0]) => void;
+  // Focus
+  addFocusSession: (s: Omit<AppState['focusSessions'][0], 'id'>) => void;
+  // Reset
   resetState: (newState: AppState) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+const uid = () => Math.random().toString(36).substr(2, 9);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AppState>(() => {
-    const saved = localStorage.getItem('itqan_state');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (!parsed.profile) return INITIAL_DATA;
-        return {
-          ...INITIAL_DATA,
-          ...parsed,
-          profile: { ...INITIAL_DATA.profile, ...parsed.profile },
-          context: { ...INITIAL_DATA.context, ...parsed.context },
-          telegram: { ...INITIAL_DATA.telegram, ...parsed.telegram },
-          calendarContext: { ...INITIAL_DATA.calendarContext, ...parsed.calendarContext }
-        };
-      } catch (e) {
-        return INITIAL_DATA;
-      }
-    }
-    return INITIAL_DATA;
-  });
-
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [state, setState] = useState<AppState>(EMPTY_STATE);
   const initialized = useRef(false);
-  const skipFirebase = useRef(false);
+  const skipSave = useRef(false);
 
-  // Load from Firestore on mount (if user has a name)
+  // Auth listener
   useEffect(() => {
-    const userId = state.profile?.name?.trim().toLowerCase().replace(/\s/g, '_');
-    if (!userId) { initialized.current = true; return; }
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setAuthReady(true);
+      if (!user) {
+        setState(EMPTY_STATE);
+        initialized.current = false;
+      }
+    });
+    return () => unsub();
+  }, []);
 
-    getDoc(doc(db, 'users', userId)).then((snap) => {
+  // Load from Firestore when user logs in
+  useEffect(() => {
+    if (!currentUser) return;
+    initialized.current = false;
+    getDoc(doc(db, 'users', currentUser.uid)).then((snap) => {
       if (snap.exists()) {
-        const remote = snap.data() as AppState;
-        skipFirebase.current = true;
-        setState(prev => ({ ...prev, ...remote, profile: { ...prev.profile, ...remote.profile } }));
+        skipSave.current = true;
+        setState(prev => ({ ...EMPTY_STATE, ...snap.data() as AppState, profile: { ...EMPTY_STATE.profile, ...(snap.data() as AppState).profile } }));
+      } else if (currentUser.displayName) {
+        // New user - set name from auth
+        setState(prev => ({ ...EMPTY_STATE, profile: { ...EMPTY_STATE.profile, name: currentUser.displayName || '' } }));
       }
       initialized.current = true;
     }).catch(() => { initialized.current = true; });
-  }, []);
+  }, [currentUser]);
 
-  // Save to Firestore + localStorage on every state change
+  // Save to Firestore + localStorage on state change
   useEffect(() => {
     localStorage.setItem('itqan_state', JSON.stringify(state));
+    if (!initialized.current || !currentUser) return;
+    if (skipSave.current) { skipSave.current = false; return; }
+    setDoc(doc(db, 'users', currentUser.uid), state, { merge: true }).catch(console.error);
+  }, [state, currentUser]);
 
-    if (!initialized.current) return;
-    if (skipFirebase.current) { skipFirebase.current = false; return; }
+  // ===== SUBJECTS =====
+  const addSubject = (s: Omit<AppState['subjects'][0], 'id'>) =>
+    setState(p => ({ ...p, subjects: [...p.subjects, { ...s, id: uid() }] }));
+  const updateSubject = (id: string, s: Partial<AppState['subjects'][0]>) =>
+    setState(p => ({ ...p, subjects: p.subjects.map(x => x.id === id ? { ...x, ...s } : x) }));
+  const deleteSubject = (id: string) =>
+    setState(p => ({ ...p, subjects: p.subjects.filter(x => x.id !== id) }));
 
-    const userId = state.profile?.name?.trim().toLowerCase().replace(/\s/g, '_');
-    if (!userId) return;
+  // ===== TASKS =====
+  const addTask = (t: Omit<AppState['tasks'][0], 'id'>) =>
+    setState(p => ({ ...p, tasks: [...p.tasks, { ...t, id: uid() }] }));
+  const updateTask = (id: string, t: Partial<AppState['tasks'][0]>) =>
+    setState(p => ({ ...p, tasks: p.tasks.map(x => x.id === id ? { ...x, ...t } : x) }));
+  const deleteTask = (id: string) =>
+    setState(p => ({ ...p, tasks: p.tasks.filter(x => x.id !== id) }));
 
-    setDoc(doc(db, 'users', userId), state, { merge: true }).catch(console.error);
-  }, [state]);
+  // ===== PROJECTS =====
+  const addProject = (p2: Omit<AppState['projects'][0], 'id'>) =>
+    setState(p => ({ ...p, projects: [...p.projects, { ...p2, id: uid() }] }));
+  const updateProject = (id: string, p2: Partial<AppState['projects'][0]>) =>
+    setState(p => ({ ...p, projects: p.projects.map(x => x.id === id ? { ...x, ...p2 } : x) }));
+  const deleteProject = (id: string) =>
+    setState(p => ({ ...p, projects: p.projects.filter(x => x.id !== id) }));
 
-  const addSubject = (subject: Omit<AppState['subjects'][0], 'id'>) => {
-    const newSubject = { ...subject, id: Math.random().toString(36).substr(2, 9) };
-    setState(prev => ({ ...prev, subjects: [...prev.subjects, newSubject] }));
-  };
+  // ===== COURSES =====
+  const addCourse = (c: Omit<AppState['courses'][0], 'id'>) =>
+    setState(p => ({ ...p, courses: [...p.courses, { ...c, id: uid() }] }));
+  const updateCourse = (id: string, c: Partial<AppState['courses'][0]>) =>
+    setState(p => ({ ...p, courses: p.courses.map(x => x.id === id ? { ...x, ...c } : x) }));
+  const deleteCourse = (id: string) =>
+    setState(p => ({ ...p, courses: p.courses.filter(x => x.id !== id) }));
 
-  const updateSubject = (id: string, subject: Partial<AppState['subjects'][0]>) => {
-    setState(prev => ({
-      ...prev,
-      subjects: prev.subjects.map(s => s.id === id ? { ...s, ...subject } : s)
-    }));
-  };
+  // ===== FINANCE =====
+  const addTransaction = (t: Omit<AppState['transactions'][0], 'id'>) =>
+    setState(p => ({ ...p, transactions: [{ ...t, id: uid() }, ...p.transactions] }));
+  const deleteTransaction = (id: string) =>
+    setState(p => ({ ...p, transactions: p.transactions.filter(x => x.id !== id) }));
+  const addWishlistItem = (i: Omit<AppState['wishlist'][0], 'id'>) =>
+    setState(p => ({ ...p, wishlist: [...p.wishlist, { ...i, id: uid() }] }));
+  const updateWishlistItem = (id: string, i: Partial<AppState['wishlist'][0]>) =>
+    setState(p => ({ ...p, wishlist: p.wishlist.map(x => x.id === id ? { ...x, ...i } : x) }));
+  const deleteWishlistItem = (id: string) =>
+    setState(p => ({ ...p, wishlist: p.wishlist.filter(x => x.id !== id) }));
+  const addCommitment = (c: Omit<AppState['commitments'][0], 'id'>) =>
+    setState(p => ({ ...p, commitments: [...p.commitments, { ...c, id: uid() }] }));
+  const updateCommitment = (id: string, c: Partial<AppState['commitments'][0]>) =>
+    setState(p => ({ ...p, commitments: p.commitments.map(x => x.id === id ? { ...x, ...c } : x) }));
+  const deleteCommitment = (id: string) =>
+    setState(p => ({ ...p, commitments: p.commitments.filter(x => x.id !== id) }));
+  const setMonthlySalary = (salary: number) =>
+    setState(p => ({ ...p, monthlySalary: salary }));
 
-  const deleteSubject = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      subjects: prev.subjects.filter(s => s.id !== id)
-    }));
-  };
-
-  const addTask = (task: Omit<AppState['tasks'][0], 'id'>) => {
-    const newTask = { ...task, id: Math.random().toString(36).substr(2, 9) };
-    setState(prev => ({ ...prev, tasks: [...prev.tasks, newTask] }));
-  };
-
-  const addTransaction = (transaction: Omit<AppState['transactions'][0], 'id'>) => {
-    const newTransaction = { ...transaction, id: Math.random().toString(36).substr(2, 9) };
-    setState(prev => ({ ...prev, transactions: [...prev.transactions, newTransaction] }));
-  };
-
-  const addWishlistItem = (item: Omit<AppState['wishlist'][0], 'id'>) => {
-    const newItem = { ...item, id: Math.random().toString(36).substr(2, 9) };
-    setState(prev => ({ ...prev, wishlist: [...prev.wishlist, newItem] }));
-  };
-
-  const updateWishlistItem = (id: string, item: Partial<AppState['wishlist'][0]>) => {
-    setState(prev => ({
-      ...prev,
-      wishlist: prev.wishlist.map(w => w.id === id ? { ...w, ...item } : w)
-    }));
-  };
-
-  const deleteWishlistItem = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      wishlist: prev.wishlist.filter(w => w.id !== id)
-    }));
-  };
-
-  const addCommitment = (commitment: Omit<AppState['commitments'][0], 'id'>) => {
-    const newCommitment = { ...commitment, id: Math.random().toString(36).substr(2, 9) };
-    setState(prev => ({ ...prev, commitments: [...prev.commitments, newCommitment] }));
-  };
-
-  const updateCommitment = (id: string, commitment: Partial<AppState['commitments'][0]>) => {
-    setState(prev => ({
-      ...prev,
-      commitments: prev.commitments.map(c => c.id === id ? { ...c, ...commitment } : c)
-    }));
-  };
-
-  const deleteCommitment = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      commitments: prev.commitments.filter(c => c.id !== id)
-    }));
-  };
-
-  const setMonthlySalary = (salary: number) => {
-    setState(prev => ({ ...prev, monthlySalary: salary }));
-  };
-
-  const updateHabit = (habitId: string, date: string) => {
-    setState(prev => ({
-      ...prev,
-      habits: prev.habits.map(h => {
-        if (h.id === habitId) {
-          const isCompleted = h.completedDates.includes(date);
-          const newDates = isCompleted 
-            ? h.completedDates.filter(d => d !== date)
-            : [...h.completedDates, date];
-          return { ...h, completedDates: newDates };
-        }
-        return h;
+  // ===== HABITS =====
+  const addHabit = (h: Omit<AppState['habits'][0], 'id' | 'streak' | 'completedDates'>) =>
+    setState(p => ({ ...p, habits: [...p.habits, { ...h, id: uid(), streak: 0, completedDates: [] }] }));
+  const updateHabit = (habitId: string, date: string) =>
+    setState(p => ({
+      ...p,
+      habits: p.habits.map(h => {
+        if (h.id !== habitId) return h;
+        const done = h.completedDates.includes(date);
+        return { ...h, completedDates: done ? h.completedDates.filter(d => d !== date) : [...h.completedDates, date] };
       })
     }));
-  };
+  const deleteHabit = (id: string) =>
+    setState(p => ({ ...p, habits: p.habits.filter(x => x.id !== id) }));
 
-  const resetState = (newState: AppState) => {
-    setState(newState);
-  };
+  // ===== LIFESTYLE =====
+  const addLifestyleLog = (log: AppState['lifestyleLogs'][0]) =>
+    setState(p => ({ ...p, lifestyleLogs: [log, ...p.lifestyleLogs.filter(l => l.date !== log.date)] }));
+
+  // ===== FOCUS =====
+  const addFocusSession = (s: Omit<AppState['focusSessions'][0], 'id'>) =>
+    setState(p => ({ ...p, focusSessions: [...p.focusSessions, { ...s, id: uid() }] }));
+
+  const resetState = (newState: AppState) => setState(newState);
+
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <AppContext.Provider value={{ 
-      state, 
-      setState, 
-      addSubject, 
-      updateSubject, 
-      deleteSubject, 
-      addTask, 
-      addTransaction, 
-      addWishlistItem,
-      updateWishlistItem,
-      deleteWishlistItem,
-      addCommitment,
-      updateCommitment,
-      deleteCommitment,
+    <AppContext.Provider value={{
+      state, setState, currentUser,
+      addSubject, updateSubject, deleteSubject,
+      addTask, updateTask, deleteTask,
+      addProject, updateProject, deleteProject,
+      addCourse, updateCourse, deleteCourse,
+      addTransaction, deleteTransaction,
+      addWishlistItem, updateWishlistItem, deleteWishlistItem,
+      addCommitment, updateCommitment, deleteCommitment,
       setMonthlySalary,
-      updateHabit, 
-      resetState 
+      addHabit, updateHabit, deleteHabit,
+      addLifestyleLog, addFocusSession,
+      resetState,
     }}>
       {children}
     </AppContext.Provider>
@@ -194,7 +200,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 };
 
 export const useApp = () => {
-  const context = useContext(AppContext);
-  if (!context) throw new Error('useApp must be used within AppProvider');
-  return context;
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  return ctx;
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import Sidebar from './components/layout/Sidebar';
 import BottomNav from './components/layout/BottomNav';
 import CommandBar from './components/layout/CommandBar';
@@ -14,15 +14,22 @@ import FocusTimer from './pages/FocusTimer';
 import PlanBuilder from './pages/PlanBuilder';
 import TelegramCoach from './pages/TelegramCoach';
 import Onboarding from './pages/Onboarding';
+import AuthScreen from './pages/AuthScreen';
 import { motion, AnimatePresence } from 'motion/react';
+import { signOut } from 'firebase/auth';
+import { auth } from './lib/firebase';
+import { LogOut } from 'lucide-react';
 
 function AppInner() {
+  const { currentUser, state } = useApp();
   const [activePage, setActivePage] = useState('dashboard');
-  const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('itqan_onboarded'));
+  const isOnboarded = !!state.profile?.name;
 
-  if (!onboarded) {
-    return <Onboarding onComplete={() => setOnboarded(true)} />;
-  }
+  // Not logged in → Auth screen
+  if (!currentUser) return <AuthScreen />;
+
+  // Logged in but no profile → Onboarding
+  if (!isOnboarded) return <Onboarding onComplete={() => {}} />;
 
   const renderPage = () => {
     switch (activePage) {
@@ -44,14 +51,24 @@ function AppInner() {
       <Sidebar activePage={activePage} setActivePage={setActivePage} />
       <main className="flex-1 pb-24 md:pb-0 md:pr-64 overflow-y-auto h-screen">
         <div className="max-w-7xl mx-auto p-4 md:p-8">
+          {/* User bar */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-brand-400 font-bold text-sm">
+                {state.profile.name?.charAt(0)?.toUpperCase() || '?'}
+              </div>
+              <span className="text-sm text-white/40 font-bold">{state.profile.name}</span>
+            </div>
+            <button onClick={() => signOut(auth)}
+              className="flex items-center gap-1.5 text-xs text-white/20 hover:text-red-400 transition-colors">
+              <LogOut size={14} /> خروج
+            </button>
+          </div>
+
           <AnimatePresence mode="wait">
-            <motion.div
-              key={activePage}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
+            <motion.div key={activePage}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
               {renderPage()}
             </motion.div>
           </AnimatePresence>
