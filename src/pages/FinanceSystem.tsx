@@ -36,9 +36,13 @@ const EXPENSE_CATEGORIES = ['طعام', 'مواصلات', 'فواتير', 'تر�
 const INCOME_CATEGORIES = ['مرتب', 'فريلانس', 'هدية', 'أخرى'];
 
 const FinanceSystem: React.FC = () => {
-  const { state, setMonthlySalary, addTransaction } = useApp();
+  const { state, setMonthlySalary, addTransaction, addCommitment, addWishlistItem } = useApp();
   const [salaryInput, setSalaryInput] = useState((state.monthlySalary ?? 15000).toString());
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCommitmentModal, setShowCommitmentModal] = useState(false);
+  const [showWishlistModal, setShowWishlistModal] = useState(false);
+  const [showSalaryEdit, setShowSalaryEdit] = useState(false);
+
   const [txForm, setTxForm] = useState({
     type: 'expense' as 'income' | 'expense',
     amount: '',
@@ -46,7 +50,23 @@ const FinanceSystem: React.FC = () => {
     note: '',
     date: format(new Date(), 'yyyy-MM-dd'),
   });
-  const [showSalaryEdit, setShowSalaryEdit] = useState(false);
+
+  const [commitForm, setCommitForm] = useState({
+    name: '',
+    amount: '',
+    dueDate: format(new Date(), 'yyyy-MM-dd'),
+    type: 'installment' as 'installment' | 'jam-eya' | 'subscription' | 'other',
+    totalInstallments: 12,
+    paidInstallments: 0,
+  });
+
+  const [wishForm, setWishForm] = useState({
+    name: '',
+    price: '',
+    category: 'tech',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    savedAmount: 0,
+  });
 
   const handleAddTransaction = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +80,37 @@ const FinanceSystem: React.FC = () => {
     });
     setShowAddModal(false);
     setTxForm({ type: 'expense', amount: '', category: 'طعام', note: '', date: format(new Date(), 'yyyy-MM-dd') });
+  };
+
+  const handleAddCommitment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commitForm.name.trim() || !commitForm.amount) return;
+    addCommitment({
+      name: commitForm.name,
+      amount: Number(commitForm.amount),
+      dueDate: commitForm.dueDate,
+      type: commitForm.type,
+      totalInstallments: commitForm.type === 'installment' ? commitForm.totalInstallments : undefined,
+      paidInstallments: commitForm.type === 'installment' ? commitForm.paidInstallments : undefined,
+      status: 'active',
+    });
+    setShowCommitmentModal(false);
+    setCommitForm({ name: '', amount: '', dueDate: format(new Date(), 'yyyy-MM-dd'), type: 'installment', totalInstallments: 12, paidInstallments: 0 });
+  };
+
+  const handleAddWishlist = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!wishForm.name.trim() || !wishForm.price) return;
+    addWishlistItem({
+      name: wishForm.name,
+      price: Number(wishForm.price),
+      category: wishForm.category,
+      priority: wishForm.priority,
+      savedAmount: wishForm.savedAmount,
+      status: 'pending',
+    });
+    setShowWishlistModal(false);
+    setWishForm({ name: '', price: '', category: 'tech', priority: 'medium', savedAmount: 0 });
   };
 
   const totalIncome = (state.transactions || [])
@@ -240,7 +291,7 @@ const FinanceSystem: React.FC = () => {
                 <CreditCard className="text-brand-400" size={20} />
                 الالتزامات المالية (أقساط وجمعيات)
               </h3>
-              <button className="text-xs text-brand-400 font-bold hover:underline">إضافة التزام</button>
+              <button onClick={() => setShowCommitmentModal(true)} className="text-xs text-brand-400 font-bold hover:underline">إضافة التزام</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(state.commitments || []).map(commitment => {
@@ -296,7 +347,7 @@ const FinanceSystem: React.FC = () => {
                 <ShoppingBag className="text-brand-400" size={20} />
                 قائمة الأمنيات (Wishlist)
               </h3>
-              <button className="text-xs text-brand-400 font-bold hover:underline">إضافة منتج</button>
+              <button onClick={() => setShowWishlistModal(true)} className="text-xs text-brand-400 font-bold hover:underline">إضافة منتج</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(state.wishlist || []).map(item => {
@@ -450,8 +501,7 @@ const FinanceSystem: React.FC = () => {
 
       {/* Add Transaction Modal */}
       <AnimatePresence>
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {showAddModal && (          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowAddModal(false)}
@@ -541,6 +591,135 @@ const FinanceSystem: React.FC = () => {
                   )}
                 >
                   {txForm.type === 'expense' ? 'تسجيل المصروف' : 'تسجيل الدخل'}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Commitment Modal */}
+      <AnimatePresence>
+        {showCommitmentModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowCommitmentModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md glass-card p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold">إضافة التزام مالي</h3>
+                <button onClick={() => setShowCommitmentModal(false)} className="p-2 hover:bg-white/10 rounded-lg"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleAddCommitment} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/40 uppercase">اسم الالتزام</label>
+                  <input autoFocus required value={commitForm.name} onChange={e => setCommitForm({...commitForm, name: e.target.value})}
+                    placeholder="مثال: قسط الموبايل"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/40 uppercase">المبلغ (ج.م)</label>
+                    <input required type="number" min="1" value={commitForm.amount} onChange={e => setCommitForm({...commitForm, amount: e.target.value})}
+                      placeholder="0"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/40 uppercase">تاريخ الدفع</label>
+                    <input type="date" value={commitForm.dueDate} onChange={e => setCommitForm({...commitForm, dueDate: e.target.value})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/40 uppercase">النوع</label>
+                  <div className="flex gap-2">
+                    {[{id:'installment',label:'قسط'},{id:'jam-eya',label:'جمعية'},{id:'subscription',label:'اشتراك'},{id:'other',label:'أخرى'}].map(t => (
+                      <button key={t.id} type="button" onClick={() => setCommitForm({...commitForm, type: t.id as any})}
+                        className={cn("flex-1 py-2 rounded-xl text-xs font-bold border transition-all",
+                          commitForm.type === t.id ? "bg-brand-500/20 border-brand-500/50 text-brand-400" : "bg-white/5 border-white/10 text-white/40")}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {commitForm.type === 'installment' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-white/40 uppercase">إجمالي الأقساط</label>
+                      <input type="number" min="1" value={commitForm.totalInstallments} onChange={e => setCommitForm({...commitForm, totalInstallments: +e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-white/40 uppercase">المدفوع منها</label>
+                      <input type="number" min="0" value={commitForm.paidInstallments} onChange={e => setCommitForm({...commitForm, paidInstallments: +e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50" />
+                    </div>
+                  </div>
+                )}
+                <button type="submit" className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition-all">
+                  إضافة الالتزام
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Wishlist Modal */}
+      <AnimatePresence>
+        {showWishlistModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowWishlistModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md glass-card p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold">إضافة لقائمة الأمنيات</h3>
+                <button onClick={() => setShowWishlistModal(false)} className="p-2 hover:bg-white/10 rounded-lg"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleAddWishlist} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/40 uppercase">اسم المنتج</label>
+                  <input autoFocus required value={wishForm.name} onChange={e => setWishForm({...wishForm, name: e.target.value})}
+                    placeholder="مثال: MacBook M3"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/40 uppercase">السعر (ج.م)</label>
+                    <input required type="number" min="1" value={wishForm.price} onChange={e => setWishForm({...wishForm, price: e.target.value})}
+                      placeholder="0"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/40 uppercase">تم توفير</label>
+                    <input type="number" min="0" value={wishForm.savedAmount} onChange={e => setWishForm({...wishForm, savedAmount: +e.target.value})}
+                      placeholder="0"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/40 uppercase">الفئة</label>
+                    <select value={wishForm.category} onChange={e => setWishForm({...wishForm, category: e.target.value})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50">
+                      {['tech','ملابس','كتب','رياضة','سفر','أخرى'].map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/40 uppercase">الأولوية</label>
+                    <select value={wishForm.priority} onChange={e => setWishForm({...wishForm, priority: e.target.value as any})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50">
+                      <option value="high">عالية</option>
+                      <option value="medium">متوسطة</option>
+                      <option value="low">منخفضة</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition-all">
+                  إضافة للأمنيات
                 </button>
               </form>
             </motion.div>
