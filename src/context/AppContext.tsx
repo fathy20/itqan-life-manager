@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { AppState } from '../types';
 import { INITIAL_DATA } from '../constants';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface AppContextType {
   state: AppState;
@@ -29,9 +31,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Robust migration: merge with INITIAL_DATA to ensure all fields exist
         if (!parsed.profile) return INITIAL_DATA;
-        
         return {
           ...INITIAL_DATA,
           ...parsed,
@@ -47,8 +47,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return INITIAL_DATA;
   });
 
+  const initialized = useRef(false);
+  const skipFirebase = useRef(false);
+
+  // Load from Firestore on mount (if user has a name)
+  useEffect(() => {
+    const userId = state.profile?.name?.trim().toLowerCase().replace(/\s/g, '_');
+    if (!userId) { initialized.current = true; return; }
+
+    getDoc(doc(db, 'users', userId)).then((snap) => {
+      if (snap.exists()) {
+        const remote = snap.data() as AppState;
+        skipFirebase.current = true;
+        setState(prev => ({ ...prev, ...remote, profile: { ...prev.profile, ...remote.profile } }));
+      }
+      initialized.current = true;
+    }).catch(() => { initialized.current = true; });
+  }, []);
+
+  // Save to Firestore + localStorage on every state change
   useEffect(() => {
     localStorage.setItem('itqan_state', JSON.stringify(state));
+
+    if (!initialized.current) return;
+    if (skipFirebase.current) { skipFirebase.current = false; return; }
+
+    const userId = state.profile?.name?.trim().toLowerCase().replace(/\s/g, '_');
+    if (!userId) return;
+
+    setDoc(doc(db, 'users', userId), state, { merge: true }).catch(console.error);
   }, [state]);
 
   const addSubject = (subject: Omit<AppState['subjects'][0], 'id'>) => {
