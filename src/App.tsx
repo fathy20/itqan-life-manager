@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import StudySystem from './pages/StudySystem';
 import WorkSystem from './pages/WorkSystem';
 import FinanceSystem from './pages/FinanceSystem';
+import FinanceLock from './components/FinanceLock';
 import LifestyleSystem from './pages/LifestyleSystem';
 import CalendarView from './pages/CalendarView';
 import FocusTimer from './pages/FocusTimer';
@@ -28,7 +29,7 @@ function AppInner() {
       case 'dashboard': return <Dashboard />;
       case 'study': return <StudySystem />;
       case 'work': return <WorkSystem />;
-      case 'finance': return <FinanceSystem />;
+      case 'finance': return <FinanceLock><FinanceSystem /></FinanceLock>;
       case 'lifestyle': return <LifestyleSystem />;
       case 'calendar': return <CalendarView />;
       case 'focus': return <FocusTimer />;
