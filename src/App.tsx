@@ -15,6 +15,9 @@ import PlanBuilder from './pages/PlanBuilder';
 import TelegramCoach from './pages/TelegramCoach';
 import Onboarding from './pages/Onboarding';
 import AuthScreen from './pages/AuthScreen';
+import SalahSystem from './pages/SalahSystem';
+import QuranSystem from './pages/QuranSystem';
+import AdhkarSystem from './pages/AdhkarSystem';
 import { motion, AnimatePresence } from 'motion/react';
 import { signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
@@ -42,6 +45,9 @@ function AppInner() {
       case 'focus': return <FocusTimer />;
       case 'plan-builder': return <PlanBuilder />;
       case 'telegram': return <TelegramCoach />;
+      case 'salah': return <SalahSystem />;
+      case 'quran': return <QuranSystem />;
+      case 'adhkar': return <AdhkarSystem />;
       default: return <Dashboard />;
     }
   };

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { scoreApi, intelligenceApi } from '../lib/api';
 import { 
   TrendingUp, 
   TrendingDown, 
   Clock, 
   Target, 
   Zap,
+  Sparkles,
   Calendar as CalendarIcon,
   BookOpen,
   Briefcase,
@@ -29,6 +31,13 @@ import { cn } from '../lib/utils';
 
 const Dashboard: React.FC = () => {
   const { state } = useApp();
+  const [intelligence, setIntelligence] = useState<any>(null);
+  const [lifeScore, setLifeScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    intelligenceApi.getDashboard().then((r: any) => { if (r.success) setIntelligence(r.data); });
+    scoreApi.getToday().then((r: any) => { if (r.success) setLifeScore(r.data?.total); });
+  }, []);
 
   // Calculate real stats
   const todayTasks = state.tasks.filter(t => t.status !== 'completed');
@@ -165,6 +174,15 @@ const Dashboard: React.FC = () => {
           trend={`استيقاظ: ${latestLog?.wakeUpTime || '--:--'}`}
           color="indigo"
         />
+        {lifeScore !== null && (
+          <StatCard
+            title="Life Score"
+            value={`${lifeScore}/100`}
+            icon={<Sparkles className="text-purple-400" />}
+            trend="إجمالي اليوم"
+            color="purple"
+          />
+        )}
       </div>
 
       {/* Main Content Grid */}

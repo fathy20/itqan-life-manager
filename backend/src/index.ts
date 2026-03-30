@@ -17,6 +17,13 @@ import habitsRoutes from "./routes/habits";
 import lifestyleRoutes from "./routes/lifestyle";
 import aiRoutes from "./modules/ai/ai.routes";
 import intelligenceRoutes from "./modules/intelligence/intelligence.routes";
+// Islamic modules
+import salahRoutes from "./modules/salah/salah.routes";
+import quranRoutes from "./modules/quran/quran.routes";
+import adhkarRoutes from "./modules/adhkar/adhkar.routes";
+import scoreRoutes from "./modules/score/score.routes";
+import fastingRoutes from "./modules/fasting/fasting.routes";
+import halaqahRoutes from "./modules/halaqah/halaqah.routes";
 
 const app = express();
 const API_V1 = "/api/v1";
@@ -48,6 +55,13 @@ app.use(`${API_V1}/habits`, habitsRoutes);
 app.use(`${API_V1}/lifestyle`, lifestyleRoutes);
 app.use(`${API_V1}/ai`, aiRoutes);
 app.use(`${API_V1}/intelligence`, intelligenceRoutes);
+// Islamic modules
+app.use(`${API_V1}/salah`, salahRoutes);
+app.use(`${API_V1}/quran`, quranRoutes);
+app.use(`${API_V1}/adhkar`, adhkarRoutes);
+app.use(`${API_V1}/score`, scoreRoutes);
+app.use(`${API_V1}/fasting`, fastingRoutes);
+app.use(`${API_V1}/halaqah`, halaqahRoutes);
 
 // ── 404 ───────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {
@@ -62,6 +76,11 @@ app.listen(config.port, () => {
   console.log(`🚀 Itqan API v2 running on http://localhost:${config.port}`);
   console.log(`📡 AI: ${API_V1}/ai/[coach|plan-day|study-strategy|finance-insights]`);
   console.log(`📊 Intelligence: ${API_V1}/intelligence/dashboard`);
+  console.log(`🕌 Salah: ${API_V1}/salah`);
+  console.log(`📖 Quran: ${API_V1}/quran`);
+  console.log(`📿 Adhkar: ${API_V1}/adhkar`);
+  console.log(`⭐ Score: ${API_V1}/score`);
+  console.log(`🌙 Fasting: ${API_V1}/fasting`);
   console.log(`🌍 Env: ${config.nodeEnv}`);
 });
 

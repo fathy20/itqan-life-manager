@@ -9,7 +9,10 @@ import {
   Timer,
   Sparkles,
   Settings,
-  MessageCircle
+  MessageCircle,
+  Moon,
+  Star,
+  Sunrise
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 

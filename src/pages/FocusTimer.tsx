@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
 const FocusTimer: React.FC = () => {
+  const { addFocusSession } = useApp();
   const [mode, setMode] = useState<'pomodoro' | 'short-break' | 'long-break'>('pomodoro');
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
@@ -35,7 +36,7 @@ const FocusTimer: React.FC = () => {
       setIsActive(false);
       if (mode === 'pomodoro') {
         setSessionsCompleted(prev => prev + 1);
-        // Play sound or notification
+        addFocusSession({ startTime: new Date().toISOString(), durationMinutes: 25, type: 'pomodoro' });
       }
       clearInterval(interval);
     }

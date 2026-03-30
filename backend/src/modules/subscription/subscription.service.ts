@@ -14,25 +14,30 @@ export async function checkFeatureAccess(uid: string, feature: keyof typeof PLAN
 }
 
 export async function checkAndIncrementAI(uid: string): Promise<{ allowed: boolean; remaining: number; plan: PlanType }> {
-  const plan = await getUserPlan(uid);
-  const limit = PLANS[plan].aiRequestsPerDay;
-  if (limit === -1) return { allowed: true, remaining: -1, plan };
+  try {
+    const plan = await getUserPlan(uid);
+    const limit = PLANS[plan].aiRequestsPerDay;
+    if (limit === -1) return { allowed: true, remaining: -1, plan };
 
-  const usageRef = db.collection("users").doc(uid).collection("meta").doc("usage");
-  const snap = await usageRef.get();
-  const now = new Date();
-  const today = now.toISOString().split("T")[0];
+    const usageRef = db.collection("users").doc(uid).collection("meta").doc("usage");
+    const snap = await usageRef.get();
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
 
-  if (!snap.exists || snap.data()?.resetDate !== today) {
-    await usageRef.set({ aiRequestsToday: 1, resetDate: today, updatedAt: now.toISOString() });
-    return { allowed: true, remaining: limit - 1, plan };
+    if (!snap.exists || snap.data()?.resetDate !== today) {
+      await usageRef.set({ aiRequestsToday: 1, resetDate: today, updatedAt: now.toISOString() });
+      return { allowed: true, remaining: limit - 1, plan };
+    }
+
+    const used = snap.data()?.aiRequestsToday || 0;
+    if (used >= limit) return { allowed: false, remaining: 0, plan };
+
+    await usageRef.update({ aiRequestsToday: FieldValue.increment(1), updatedAt: now.toISOString() });
+    return { allowed: true, remaining: limit - used - 1, plan };
+  } catch {
+    // If any error, allow the request (fail open)
+    return { allowed: true, remaining: -1, plan: 'free' };
   }
-
-  const used = snap.data()?.aiRequestsToday || 0;
-  if (used >= limit) return { allowed: false, remaining: 0, plan };
-
-  await usageRef.update({ aiRequestsToday: FieldValue.increment(1), updatedAt: now.toISOString() });
-  return { allowed: true, remaining: limit - used - 1, plan };
 }
 
 export async function ensureSubscriptionDoc(uid: string): Promise<void> {

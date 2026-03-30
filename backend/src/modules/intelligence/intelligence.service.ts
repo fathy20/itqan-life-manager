@@ -66,7 +66,7 @@ export async function computeIntelligence(uid: string): Promise<IntelligenceRepo
       const daysLeft = Math.ceil((new Date(s.examDate).getTime() - Date.now()) / 86400000);
       const remaining = (s.totalLectures || 0) - (s.completedLectures || 0);
       const dailyLoad = daysLeft > 0 ? remaining / daysLeft : 999;
-      const risk = dailyLoad > 4 ? "danger" : dailyLoad > 2 ? "warning" : "safe";
+      const risk = (dailyLoad > 4 ? "danger" : dailyLoad > 2 ? "warning" : "safe") as "safe" | "warning" | "danger";
       return { name: s.name, risk, daysLeft, dailyLoad: Math.round(dailyLoad * 10) / 10 };
     })
     .sort((a: any, b: any) => a.daysLeft - b.daysLeft);

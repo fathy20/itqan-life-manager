@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useApp } from '../context/AppContext';
 import { 
   MessageCircle, 
   Send, 
@@ -68,7 +69,7 @@ const TelegramCoach: React.FC = () => {
       const botMsg = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: data.text || "عذراً، حدث خطأ.",
+        text: data.data?.text || data.text || "عذراً، حدث خطأ.",
         time: new Date().toISOString()
       };
       setMessages(prev => [...prev, botMsg]);
