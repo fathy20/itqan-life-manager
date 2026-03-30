@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useApp } from '../context/AppContext';
 import { 
   MessageCircle, 
   Send, 
@@ -15,7 +14,6 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
-import { GoogleGenAI } from "@google/genai";
 
 const TelegramCoach: React.FC = () => {
   const { state } = useApp();
@@ -53,51 +51,33 @@ const TelegramCoach: React.FC = () => {
     setIsTyping(true);
     
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-      
-      const balance = state.transactions.reduce((acc, t) => 
-        t.type === 'income' ? acc + t.amount : acc - t.amount, 0
-      );
-
-      const context = `
-        User Profile: ${state.profile.name}, Role: ${state.profile.role}
-        Subjects: ${state.subjects.map(s => `${s.name} (${s.completedLectures}/${s.totalLectures} lectures)`).join(', ')}
-        Finances: Balance ${balance}, Monthly Salary ${state.monthlySalary}
-        Tasks: ${state.tasks.map(t => `${t.title} (${t.status})`).join(', ')}
-      `;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: userText }]
-          }
-        ],
-        config: {
-          systemInstruction: `أنت "المدرب الشخصي الذكي" في تطبيق Itqan Life Manager. 
-          مهمتك هي مساعدة المستخدم (${state.profile.name}) في تنظيم حياته، دراسته، وعمله.
-          استخدم البيانات التالية لتقديم نصائح مخصصة: ${context}.
-          كن محفزاً، عملياً، ومختصراً. تحدث باللغة العربية بلهجة ودودة ولكن مهنية.
-          إذا سألك عن الدراسة، شجعه بناءً على تقدمه في المواد.
-          إذا سألك عن المال، قدم نصيحة بناءً على رصيده.
-          دائماً حاول ربط إجابتك بأهدافه الحالية.`
-        }
+      const token = await import('../lib/firebase').then(m => m.auth.currentUser?.getIdToken());
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/ai/coach`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          message: userText,
+          history: messages.slice(-10)
+        })
       });
 
+      const data = await res.json();
       const botMsg = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: response.text || "عذراً، واجهت مشكلة في معالجة طلبك.",
+        text: data.text || "عذراً، حدث خطأ.",
         time: new Date().toISOString()
       };
       setMessages(prev => [...prev, botMsg]);
     } catch (error) {
-      console.error("Gemini Error:", error);
+      console.error("Coach error:", error);
       const errorMsg = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: "عذراً، حدث خطأ في الاتصال بالذكاء الاصطناعي. يرجى المحاولة لاحقاً.",
+        text: "عذراً، حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.",
         time: new Date().toISOString()
       };
       setMessages(prev => [...prev, errorMsg]);
