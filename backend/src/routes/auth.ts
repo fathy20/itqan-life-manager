@@ -1,23 +1,24 @@
 import { Router, Response } from "express";
 import { db } from "../lib/firebase-admin";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { ok, error } from "../shared/utils/response";
 
 const router = Router();
 
-// GET /api/auth/me - get current user profile
+// GET /api/v1/auth/me
 router.get("/me", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const uid = req.uid!;
     const profileDoc = await db.collection("users").doc(uid).get();
 
     if (!profileDoc.exists) {
-      res.status(404).json({ error: "User profile not found" });
+      error(res, 404, "User profile not found", "NOT_FOUND");
       return;
     }
 
-    res.json({ uid, ...profileDoc.data() });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch user" });
+    ok(res, { uid, ...profileDoc.data() });
+  } catch {
+    error(res, 500, "Failed to fetch user", "SERVER_ERROR");
   }
 });
 

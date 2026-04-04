@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() { return request.auth != null; }
+    function isOwner(uid) { return isAuth() && request.auth.uid == uid; }
+
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+      match /{sub}/{docId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    match /halaqahs/{halaqahId} {
+      allow read: if isAuth() && request.auth.uid in resource.data.members;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.createdBy;
+
+      match /duas/{duaId} {
+        allow read: if isAuth();
+        allow create: if isAuth();
+        allow delete: if isAuth() && request.auth.uid == resource.data.authorUid;
+      }
+      match /naseeha/{msgId} {
+        allow read, create: if isAuth();
+      }
+      match /challenges/{challengeId} {
+        allow read: if isAuth();
+        allow update: if isAuth();
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

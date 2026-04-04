@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useFinance } from '../hooks/useFinance';
 import { 
   Wallet, 
   Plus, 
@@ -37,6 +38,7 @@ const INCOME_CATEGORIES = ['مرتب', 'فريلانس', 'هدية', 'أخرى']
 
 const FinanceSystem: React.FC = () => {
   const { state, setMonthlySalary, addTransaction, deleteTransaction, addCommitment, addWishlistItem } = useApp();
+  const { income: liveIncome, expenses: liveExpenses, balance: liveBalance } = useFinance();
   const [salaryInput, setSalaryInput] = useState((state.monthlySalary ?? 15000).toString());
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCommitmentModal, setShowCommitmentModal] = useState(false);

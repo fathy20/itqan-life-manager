@@ -1,32 +1,45 @@
 import { Router, Response } from "express";
+import { z } from "zod";
 import { db } from "../lib/firebase-admin";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { ok, error } from "../shared/utils/response";
 
 const router = Router();
 
-// GET /api/profile
+const profileSchema = z.object({
+  displayName: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(100).optional(),
+  role: z.string().max(100).optional(),
+  university: z.string().max(200).optional(),
+  major: z.string().max(200).optional(),
+  plan: z.enum(["free", "pro", "premium"]).optional(),
+}).passthrough();
+
+// GET /api/v1/profile
 router.get("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const doc = await db.collection("users").doc(req.uid!).get();
-    if (!doc.exists) {
-      res.status(404).json({ error: "Profile not found" });
-      return;
-    }
-    res.json({ id: doc.id, ...doc.data() });
+    if (!doc.exists) { error(res, 404, "Profile not found", "NOT_FOUND"); return; }
+    ok(res, { id: doc.id, ...doc.data() });
   } catch {
-    res.status(500).json({ error: "Failed to fetch profile" });
+    error(res, 500, "Failed to fetch profile", "SERVER_ERROR");
   }
 });
 
-// PUT /api/profile
+// PUT /api/v1/profile
 router.put("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
+    const parsed = profileSchema.safeParse(req.body);
+    if (!parsed.success) {
+      error(res, 400, parsed.error.issues[0]?.message ?? "Invalid input", "VALIDATION_ERROR");
+      return;
+    }
     const ref = db.collection("users").doc(req.uid!);
-    await ref.set({ ...req.body, updatedAt: new Date().toISOString() }, { merge: true });
+    await ref.set({ ...parsed.data, updatedAt: new Date().toISOString() }, { merge: true });
     const updated = await ref.get();
-    res.json({ id: updated.id, ...updated.data() });
+    ok(res, { id: updated.id, ...updated.data() });
   } catch {
-    res.status(500).json({ error: "Failed to update profile" });
+    error(res, 500, "Failed to update profile", "SERVER_ERROR");
   }
 });
 

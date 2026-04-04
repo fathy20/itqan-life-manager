@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useLifestyle } from '../hooks/useLifestyle';
 import { Moon, Smartphone, Droplets, Footprints, Zap, CheckCircle2, Circle, TrendingUp, Award, Plus, X, Trash2, Heart } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
@@ -9,6 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const LifestyleSystem: React.FC = () => {
   const { state, updateHabit, addHabit, deleteHabit, addLifestyleLog } = useApp();
+  const { toggleHabit } = useLifestyle();
   const today = new Date().toISOString().split('T')[0];
   const [showAddHabit, setShowAddHabit] = useState(false);
   const [showLogModal, setShowLogModal] = useState(false);

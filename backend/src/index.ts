@@ -15,6 +15,7 @@ import coursesRoutes from "./routes/courses";
 import financeRoutes from "./routes/finance";
 import habitsRoutes from "./routes/habits";
 import lifestyleRoutes from "./routes/lifestyle";
+import focusRoutes from "./routes/focus";
 import aiRoutes from "./modules/ai/ai.routes";
 import intelligenceRoutes from "./modules/intelligence/intelligence.routes";
 // Islamic modules
@@ -53,6 +54,7 @@ app.use(`${API_V1}/courses`, coursesRoutes);
 app.use(`${API_V1}/finance`, financeRoutes);
 app.use(`${API_V1}/habits`, habitsRoutes);
 app.use(`${API_V1}/lifestyle`, lifestyleRoutes);
+app.use(`${API_V1}/focus`, focusRoutes);
 app.use(`${API_V1}/ai`, aiRoutes);
 app.use(`${API_V1}/intelligence`, intelligenceRoutes);
 // Islamic modules

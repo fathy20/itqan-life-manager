@@ -1,127 +1,139 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-import { cn } from '../lib/utils';
-import { Eye, EyeOff, Sparkles, LogIn, UserPlus, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+const BG = "#000E30";
+const CARD = "#071A3A";
+const BORDER = "#0C2550";
+const CYAN = "#08A7E7";
+const MUTED = "#3D5A80";
+const TEXT = "#C0C8D8";
+const BRIGHT = "#E8EBF0";
+
+const ERROR_MESSAGES: Record<string, string> = {
+  'auth/wrong-password': 'كلمة السر غلط',
+  'auth/invalid-credential': 'الإيميل أو كلمة السر غلط',
+  'auth/user-not-found': 'الحساب ده مش موجود',
+  'auth/email-already-in-use': 'الإيميل ده مستخدم قبل كده',
+  'auth/weak-password': 'كلمة السر ضعيفة (6 أحرف على الأقل)',
+  'auth/invalid-email': 'الإيميل مش صحيح',
+  'auth/too-many-requests': 'محاولات كتير، استنى شوية',
+  'auth/network-request-failed': 'مشكلة في الاتصال بالإنترنت',
+};
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [displayName, setDisplayName] = useState('');
+  const [tab, setTab] = useState<'login' | 'register'>('login');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setErrorMsg('');
     setLoading(true);
     try {
-      if (mode === 'register') {
-        if (!displayName.trim()) { setError('اكتب اسمك'); setLoading(false); return; }
+      if (tab === 'register') {
+        if (!name.trim()) { setErrorMsg('اكتب اسمك الأول'); setLoading(false); return; }
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(cred.user, { displayName: displayName.trim() });
+        await updateProfile(cred.user, { displayName: name.trim() });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
     } catch (err: any) {
-      const msg: Record<string, string> = {
-        'auth/email-already-in-use': 'الإيميل ده مسجل قبل كده',
-        'auth/invalid-email': 'إيميل غير صحيح',
-        'auth/weak-password': 'الباسورد ضعيف (6 أحرف على الأقل)',
-        'auth/user-not-found': 'مفيش حساب بالإيميل ده',
-        'auth/wrong-password': 'باسورد غلط',
-        'auth/invalid-credential': 'إيميل أو باسورد غلط',
-        'auth/too-many-requests': 'محاولات كتير، استنى شوية',
-      };
-      setError(msg[err.code] || 'حدث خطأ، حاول تاني');
+      setErrorMsg(ERROR_MESSAGES[err.code] || 'حدث خطأ، حاول تاني');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4" dir="rtl">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(14,165,233,0.2)]">
-            <Sparkles size={32} className="text-brand-400" />
-          </div>
-          <h1 className="text-4xl font-black bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">إتقان</h1>
-          <p className="text-white/40 mt-2 text-sm">نظام إدارة الحياة الذكي</p>
-        </motion.div>
+    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Inter', system-ui, sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-        {/* Toggle */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
-          className="flex p-1 bg-white/5 rounded-2xl border border-white/10 mb-6">
-          <button onClick={() => { setMode('login'); setError(''); }}
-            className={cn("flex-1 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2",
-              mode === 'login' ? "bg-brand-500 text-white shadow-lg" : "text-white/40 hover:text-white/60")}>
-            <LogIn size={16} /> تسجيل الدخول
-          </button>
-          <button onClick={() => { setMode('register'); setError(''); }}
-            className={cn("flex-1 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2",
-              mode === 'register' ? "bg-brand-500 text-white shadow-lg" : "text-white/40 hover:text-white/60")}>
-            <UserPlus size={16} /> حساب جديد
-          </button>
-        </motion.div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ width: '100%', maxWidth: 420 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ width: 64, height: 64, borderRadius: 18, background: `${CYAN}15`, border: `1px solid ${CYAN}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: `0 0 30px ${CYAN}15` }}>
+            <Sparkles size={28} color={CYAN} />
+          </div>
+          <h1 style={{ fontSize: 32, fontWeight: 800, color: BRIGHT, fontFamily: "'Noto Kufi Arabic', sans-serif", margin: 0 }}>إتقان</h1>
+          <p style={{ fontSize: 13, color: MUTED, marginTop: 6 }}>نظام إدارة الحياة الذكي</p>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', background: CARD, borderRadius: 12, padding: 4, border: `1px solid ${BORDER}`, marginBottom: 24 }}>
+          {(['login', 'register'] as const).map(t => (
+            <button key={t} onClick={() => { setTab(t); setErrorMsg(''); }} style={{
+              flex: 1, padding: '10px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', transition: 'all 0.2s',
+              background: tab === t ? CYAN : 'transparent',
+              color: tab === t ? '#000E30' : MUTED,
+              fontFamily: "'Noto Kufi Arabic', sans-serif",
+            }}>
+              {t === 'login' ? 'تسجيل الدخول' : 'حساب جديد'}
+            </button>
+          ))}
+        </div>
 
         {/* Form */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="glass-card p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <AnimatePresence>
-              {mode === 'register' && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                  className="space-y-2 overflow-hidden">
-                  <label className="text-xs font-bold text-white/40 uppercase">اسمك</label>
-                  <input autoFocus value={displayName} onChange={e => setDisplayName(e.target.value)}
-                    placeholder="مثال: فتحي"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50 transition-colors text-lg font-bold" />
-                </motion.div>
-              )}
-            </AnimatePresence>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <AnimatePresence>
+            {tab === 'register' && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
+                <label style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: 6 }}>اسمك</label>
+                <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="مثال: فتحي" style={inputStyle} />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-white/40 uppercase">الإيميل</label>
-              <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="example@email.com"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50 transition-colors" />
+          <div>
+            <label style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: 6 }}>الإيميل</label>
+            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="example@email.com" style={inputStyle} />
+          </div>
+
+          <div>
+            <label style={{ fontSize: 11, color: MUTED, textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: 6 }}>كلمة السر</label>
+            <div style={{ position: 'relative' }}>
+              <input type={showPass ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={{ ...inputStyle, paddingLeft: 44 }} />
+              <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED }}>
+                {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-white/40 uppercase">الباسورد</label>
-              <div className="relative">
-                <input type={showPass ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-500/50 transition-colors pr-12" />
-                <button type="button" onClick={() => setShowPass(!showPass)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+          <AnimatePresence>
+            {errorMsg && (
+              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ padding: '10px 14px', borderRadius: 8, background: '#F8717110', border: '1px solid #F8717125', color: '#F87171', fontSize: 13, textAlign: 'center', fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
+                {errorMsg}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <AnimatePresence>
-              {error && (
-                <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="text-red-400 text-xs font-bold text-center bg-red-500/10 py-2.5 rounded-xl border border-red-500/20">
-                  {error}
-                </motion.p>
-              )}
-            </AnimatePresence>
+          <button type="submit" disabled={loading} style={{
+            padding: '14px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+            background: loading ? MUTED : CYAN, border: 'none', color: '#000E30', transition: 'all 0.2s',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            fontFamily: "'Noto Kufi Arabic', sans-serif",
+            boxShadow: loading ? 'none' : `0 0 20px ${CYAN}30`,
+          }}>
+            {loading ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+            {loading ? 'جاري...' : tab === 'login' ? 'دخول' : 'إنشاء الحساب'}
+          </button>
+        </form>
 
-            <button type="submit" disabled={loading}
-              className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2 mt-2">
-              {loading ? <Loader2 size={20} className="animate-spin" /> : mode === 'login' ? <LogIn size={20} /> : <UserPlus size={20} />}
-              {loading ? 'جاري...' : mode === 'login' ? 'دخول' : 'إنشاء الحساب'}
-            </button>
-          </form>
-        </motion.div>
-      </div>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      </motion.div>
     </div>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '12px 16px', borderRadius: 10, fontSize: 14,
+  background: '#071A3A', border: '1px solid #0C2550', color: '#E8EBF0',
+  outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+  transition: 'border-color 0.2s',
+};

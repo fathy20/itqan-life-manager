@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useStudy } from '../hooks/useStudy';
 import { 
   BookOpen, 
   Plus, 
@@ -24,6 +25,7 @@ const COLOR_PRESETS = [
 
 const StudySystem: React.FC = () => {
   const { state, addSubject, updateSubject, deleteSubject } = useApp();
+  const { nextExam, dangerSubjects } = useStudy();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSubject, setEditingSubject] = useState<any>(null);
 

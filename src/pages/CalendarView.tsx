@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useStudy } from '../hooks/useStudy';
+import { useSalah } from '../hooks/useSalah';
 import {
   ChevronLeft,
   ChevronRight,
@@ -46,6 +48,8 @@ const TYPE_COLORS: Record<string, string> = {
 
 const CalendarView: React.FC = () => {
   const { state } = useApp();
+  const { nextExam } = useStudy();
+  const { prayerLog, times } = useSalah();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);

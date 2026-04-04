@@ -1,53 +1,54 @@
 import { Router, Response } from "express";
 import { db } from "../lib/firebase-admin";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { ok, created, noContent, error } from "../shared/utils/response";
 
 const router = Router();
 
 const col = (uid: string) => db.collection("users").doc(uid).collection("courses");
 
-// GET /api/courses
+// GET /api/v1/courses
 router.get("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const snapshot = await col(req.uid!).orderBy("createdAt", "desc").get();
-    res.json(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    ok(res, snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
   } catch {
-    res.status(500).json({ error: "Failed to fetch courses" });
+    error(res, 500, "Failed to fetch courses", "SERVER_ERROR");
   }
 });
 
-// POST /api/courses
+// POST /api/v1/courses
 router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const data = { ...req.body, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     const ref = await col(req.uid!).add(data);
-    res.status(201).json({ id: ref.id, ...data });
+    created(res, { id: ref.id, ...data });
   } catch {
-    res.status(500).json({ error: "Failed to create course" });
+    error(res, 500, "Failed to create course", "SERVER_ERROR");
   }
 });
 
-// PUT /api/courses/:id
+// PUT /api/v1/courses/:id
 router.put("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const ref = col(req.uid!).doc(req.params.id);
     const data = { ...req.body, updatedAt: new Date().toISOString() };
     await ref.update(data);
     const updated = await ref.get();
-    if (!updated.exists) { res.status(404).json({ error: "Not found" }); return; }
-    res.json({ id: updated.id, ...updated.data() });
+    if (!updated.exists) { error(res, 404, "Course not found", "NOT_FOUND"); return; }
+    ok(res, { id: updated.id, ...updated.data() });
   } catch {
-    res.status(500).json({ error: "Failed to update course" });
+    error(res, 500, "Failed to update course", "SERVER_ERROR");
   }
 });
 
-// DELETE /api/courses/:id
+// DELETE /api/v1/courses/:id
 router.delete("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     await col(req.uid!).doc(req.params.id).delete();
-    res.status(204).send();
+    noContent(res);
   } catch {
-    res.status(500).json({ error: "Failed to delete course" });
+    error(res, 500, "Failed to delete course", "SERVER_ERROR");
   }
 });
 

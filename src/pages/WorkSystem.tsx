@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useWork } from '../hooks/useWork';
 import {
   Briefcase,
   Plus,
@@ -22,6 +23,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const WorkSystem: React.FC = () => {
   const { state, addTask, setState } = useApp();
+  const { toggleTask, deleteTask: removeTask } = useWork();
   const [filter, setFilter] = useState<'all' | 'work' | 'freelance' | 'study'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [form, setForm] = useState({
@@ -36,18 +38,11 @@ const WorkSystem: React.FC = () => {
   const filteredTasks = state.tasks.filter(t => filter === 'all' || t.type === filter);
 
   const handleToggleTask = (taskId: string) => {
-    setState(prev => ({
-      ...prev,
-      tasks: prev.tasks.map(t =>
-        t.id === taskId
-          ? { ...t, status: t.status === 'completed' ? 'todo' : 'completed' }
-          : t
-      )
-    }));
+    toggleTask(taskId);
   };
 
   const handleDeleteTask = (taskId: string) => {
-    setState(prev => ({ ...prev, tasks: prev.tasks.filter(t => t.id !== taskId) }));
+    removeTask(taskId);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
