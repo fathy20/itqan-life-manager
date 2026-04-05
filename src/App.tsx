@@ -18,6 +18,7 @@ import AuthScreen from './pages/AuthScreen';
 import SalahSystem from './pages/SalahSystem';
 import QuranSystem from './pages/QuranSystem';
 import AdhkarSystem from './pages/AdhkarSystem';
+import SibaqSystem from './pages/SibaqSystem';
 import { motion, AnimatePresence } from 'motion/react';
 import { signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
@@ -48,6 +49,7 @@ function AppInner() {
       case 'salah': return <SalahSystem />;
       case 'quran': return <QuranSystem />;
       case 'adhkar': return <AdhkarSystem />;
+      case 'sibaq': return <SibaqSystem />;
       default: return <Dashboard />;
     }
   };

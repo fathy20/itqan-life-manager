@@ -16,10 +16,11 @@ export function useQuran() {
       quranApi.getReviewsDue(),
       quranApi.getStats(),
     ]);
-    if (plansRes.success) setPlans(plansRes.data || []);
-    if (hifzRes.success) setHifz(hifzRes.data || []);
-    if (reviewsRes.success) setReviewsDue(reviewsRes.data || []);
-    if (statsRes.success) setStats(statsRes.data);
+    const p = plansRes as any, h = hifzRes as any, r = reviewsRes as any, s = statsRes as any;
+    if (p?.success) setPlans(p.data || []);
+    if (h?.success) setHifz(h.data || []);
+    if (r?.success) setReviewsDue(r.data || []);
+    if (s?.success) setStats(s.data);
     setLoading(false);
   }, []);
 

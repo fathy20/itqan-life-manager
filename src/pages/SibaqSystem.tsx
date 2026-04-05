@@ -76,7 +76,7 @@ const WEEK_CHART = [
   { day: "T", s: 85 }, { day: "W", s: 88 }, { day: "T", s: 76 }, { day: "F", s: 92 },
 ];
 
-function AnimNum({ to, dur = 1000 }) {
+function AnimNum({ to, dur = 1000 }: any) {
   const [v, setV] = useState(0);
   useEffect(() => {
     let s = 0; const step = to / (dur / 16);
@@ -86,7 +86,7 @@ function AnimNum({ to, dur = 1000 }) {
   return <>{v}</>;
 }
 
-function Card({ children, style, glow }) {
+function Card({ children, style, glow }: any) {
   return (
     <div style={{
       background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`,
@@ -101,7 +101,7 @@ function Card({ children, style, glow }) {
   );
 }
 
-function BigRing({ pct, color, size = 140 }) {
+function BigRing({ pct, color, size = 140 }: any) {
   const [a, setA] = useState(0);
   useEffect(() => { setTimeout(() => setA(pct), 200); }, [pct]);
   const r = (size - 16) / 2, c = Math.PI * 2 * r;
@@ -129,7 +129,7 @@ function BigRing({ pct, color, size = 140 }) {
   );
 }
 
-function MiniRing({ pct, color, size = 38, sw = 3 }) {
+function MiniRing({ pct, color, size = 38, sw = 3 }: any) {
   const r = (size - sw * 2) / 2, c = Math.PI * 2 * r;
   return (
     <svg width={size} height={size} style={{ transform: "rotate(-90deg)", flexShrink: 0 }}>
@@ -141,7 +141,7 @@ function MiniRing({ pct, color, size = 38, sw = 3 }) {
   );
 }
 
-function LeaderboardRow({ m, pos, index }) {
+function LeaderboardRow({ m, pos, index }: any) {
   const rankData = RANKS[m.rank];
   const RankIcon = rankData?.icon || Shield;
   const isTop = pos === 0;
@@ -221,7 +221,7 @@ function LeaderboardRow({ m, pos, index }) {
   );
 }
 
-function DuaCard({ dua, index }) {
+function DuaCard({ dua, index }: any) {
   const [prayed, setPrayed] = useState(false);
   return (
     <div style={{
@@ -252,7 +252,7 @@ function DuaCard({ dua, index }) {
   );
 }
 
-function ChartTooltip({ active, payload }) {
+function ChartTooltip({ active, payload }: any = {}) {
   if (!active || !payload?.[0]) return null;
   return (
     <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 6, padding: "4px 10px" }}>

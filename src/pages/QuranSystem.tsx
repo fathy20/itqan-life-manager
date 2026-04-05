@@ -19,7 +19,7 @@ const WEEK_PAGES = [
   { day: "ثلاثاء", pages: 3 }, { day: "أربعاء", pages: 5 }, { day: "خميس", pages: 4 }, { day: "جمعة", pages: 7 },
 ];
 
-function Card({ children, style, glow }) {
+function Card({ children, style, glow }: any) {
   return (
     <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`, padding: "18px 20px", position: "relative", overflow: "hidden", ...style }}>
       {glow && <div style={{ position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: "50%", background: glow, opacity: 0.04, filter: "blur(30px)", pointerEvents: "none" }} />}
@@ -28,7 +28,7 @@ function Card({ children, style, glow }) {
   );
 }
 
-function BarTooltip({ active, payload }) {
+function BarTooltip({ active, payload }: any = {}) {
   if (!active || !payload?.[0]) return null;
   return (
     <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "6px 12px" }}>

@@ -71,7 +71,7 @@ const MONTHLY_HEATMAP = Array.from({ length: 30 }, (_, i) => {
   };
 });
 
-function AnimNum({ to, dur = 1000 }) {
+function AnimNum({ to, dur = 1000 }: any) {
   const [v, setV] = useState(0);
   useEffect(() => {
     let s = 0; const step = to / (dur / 16);
@@ -81,7 +81,7 @@ function AnimNum({ to, dur = 1000 }) {
   return <>{v}</>;
 }
 
-function Card({ children, style, glow }) {
+function Card({ children, style, glow }: any) {
   return (
     <div style={{
       background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`,
@@ -109,7 +109,7 @@ function CountdownTimer() {
   );
 }
 
-function PrayerCard({ prayer, index }) {
+function PrayerCard({ prayer, index }: any) {
   const [expanded, setExpanded] = useState(false);
   const isDone = prayer.status === "done";
   const isCurrent = prayer.status === "current";
@@ -278,7 +278,7 @@ function PrayerCard({ prayer, index }) {
   );
 }
 
-function HeatmapCell({ day, score }) {
+function HeatmapCell({ day, score }: any) {
   const colors = ["#0C2550", "#08A7E720", "#08A7E740", "#08A7E770", "#08A7E7A0", "#08A7E7"];
   return (
     <div title={`Day ${day}: ${score}/5 prayers`} style={{
@@ -297,7 +297,7 @@ function HeatmapCell({ day, score }) {
   );
 }
 
-function WeekBarTooltip({ active, payload }) {
+function WeekBarTooltip({ active, payload }: any = {}) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   return (

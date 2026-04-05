@@ -12,7 +12,8 @@ import {
   MessageCircle,
   Moon,
   Star,
-  Sunrise
+  Sunrise,
+  Swords
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -24,6 +25,10 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
   const menuItems = [
     { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard },
+    { id: 'salah', label: 'الصلاة', icon: Sunrise },
+    { id: 'quran', label: 'القرآن', icon: BookOpen },
+    { id: 'adhkar', label: 'الأذكار', icon: Star },
+    { id: 'sibaq', label: 'السباق', icon: Swords },
     { id: 'study', label: 'الدراسة', icon: BookOpen },
     { id: 'work', label: 'العمل', icon: Briefcase },
     { id: 'calendar', label: 'التقويم', icon: Calendar },

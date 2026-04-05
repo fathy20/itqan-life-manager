@@ -45,7 +45,7 @@ const WEEK = [
   { day: "F", done: false },
 ];
 
-function Card({ children, style, glow }) {
+function Card({ children, style, glow }: any) {
   return (
     <div style={{ background: CARD, borderRadius: 14, border: `1px solid ${BORDER}`, padding: "18px 20px", position: "relative", overflow: "hidden", ...style }}>
       {glow && <div style={{ position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: "50%", background: glow, opacity: 0.04, filter: "blur(30px)", pointerEvents: "none" }} />}
@@ -54,7 +54,7 @@ function Card({ children, style, glow }) {
   );
 }
 
-function Counter({ data, initial = 0 }) {
+function Counter({ data, initial = 0 }: any) {
   const [count, setCount] = useState(initial);
   const pct = Math.min((count / data.target) * 100, 100);
   const done = count >= data.target;

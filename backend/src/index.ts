@@ -25,6 +25,7 @@ import adhkarRoutes from "./modules/adhkar/adhkar.routes";
 import scoreRoutes from "./modules/score/score.routes";
 import fastingRoutes from "./modules/fasting/fasting.routes";
 import halaqahRoutes from "./modules/halaqah/halaqah.routes";
+import subscriptionRoutes from "./modules/subscription/subscription.routes";
 
 const app = express();
 const API_V1 = "/api/v1";
@@ -64,6 +65,7 @@ app.use(`${API_V1}/adhkar`, adhkarRoutes);
 app.use(`${API_V1}/score`, scoreRoutes);
 app.use(`${API_V1}/fasting`, fastingRoutes);
 app.use(`${API_V1}/halaqah`, halaqahRoutes);
+app.use(`${API_V1}/subscription`, subscriptionRoutes);
 
 // ── 404 ───────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {
@@ -74,7 +76,8 @@ app.use((_req: Request, res: Response) => {
 app.use(errorHandler);
 
 // ── Start ─────────────────────────────────────────────────────
-app.listen(config.port, () => {
+if (config.nodeEnv !== "test") {
+  app.listen(config.port, () => {
   console.log(`🚀 Itqan API v2 running on http://localhost:${config.port}`);
   console.log(`📡 AI: ${API_V1}/ai/[coach|plan-day|study-strategy|finance-insights]`);
   console.log(`📊 Intelligence: ${API_V1}/intelligence/dashboard`);
@@ -84,6 +87,7 @@ app.listen(config.port, () => {
   console.log(`⭐ Score: ${API_V1}/score`);
   console.log(`🌙 Fasting: ${API_V1}/fasting`);
   console.log(`🌍 Env: ${config.nodeEnv}`);
-});
+  });
+}
 
 export default app;
