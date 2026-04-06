@@ -47,6 +47,15 @@ function AppInner() {
   if (activePage === 'salah') {
     return <SalahSystem onBack={() => navigate('dashboard')} />;
   }
+  if (activePage === 'quran') {
+    return <QuranSystem />;
+  }
+  if (activePage === 'adhkar') {
+    return <AdhkarSystem />;
+  }
+  if (activePage === 'sibaq') {
+    return <SibaqSystem />;
+  }
 
   // Legacy pages — wrapped in old sidebar layout
   const renderPage = () => {
@@ -59,9 +68,6 @@ function AppInner() {
       case 'focus':    return <FocusTimer />;
       case 'plan-builder': return <PlanBuilder />;
       case 'telegram': return <TelegramCoach />;
-      case 'quran':    return <QuranSystem />;
-      case 'adhkar':   return <AdhkarSystem />;
-      case 'sibaq':    return <SibaqSystem />;
       default:         return <HomeScreen onNavigate={navigate} />;
     }
   };

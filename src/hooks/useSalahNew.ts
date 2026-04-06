@@ -74,7 +74,8 @@ export function useSalahNew(): UseSalahReturn {
       const allFailed =
         !logRes.success && !qadaRes.success && !statsRes.success && !profileRes.success;
       if (allFailed) {
-        setError('تعذّر تحميل بيانات الصلاة. تحقق من الاتصال وأعد المحاولة.');
+        // Don't block UI — show offline mode with empty values
+        console.warn('Backend unavailable — Salah in offline mode');
       }
     } catch (err: unknown) {
       setError('حدث خطأ غير متوقع. أعد المحاولة.');

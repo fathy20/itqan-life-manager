@@ -77,11 +77,16 @@ export function useHomeNew(): UseHomeReturn {
       if (sharedRes.success && sharedRes.data) setShared(sharedRes.data);
       if (logRes.success    && logRes.data)    setPrayerLog(logRes.data);
 
+      // Only show error if ALL requests failed AND it's a network error (backend down)
+      // Partial failures are handled gracefully with '—' fallbacks in the UI
       const allFailed =
         !profileRes.success && !scoreRes.success &&
         !sharedRes.success  && !logRes.success;
-      if (allFailed) {
-        setError('تعذّر تحميل البيانات. تحقق من الاتصال وأعد المحاولة.');
+      const isNetworkError = allFailed &&
+        [profileRes, scoreRes, sharedRes, logRes].every(r => r.code === 'NETWORK_ERROR');
+      if (isNetworkError) {
+        // Don't block the UI — just log silently, show '—' values
+        console.warn('Backend unavailable — showing Home in offline mode');
       }
     } catch {
       setError('حدث خطأ غير متوقع. أعد المحاولة.');
