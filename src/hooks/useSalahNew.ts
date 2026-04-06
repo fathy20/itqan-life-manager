@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react';
-import { salahApiNew, profileApiNew } from '../lib/api';
+import { salahApiNew, profileApiNew } from '../lib/api/index';
 import type {
   DayPrayerLog,
   PrayerTimes,
