@@ -4,7 +4,6 @@
 // ═══════════════════════════════════════════════════════════════
 
 import type { KhatmaPlan, SurahHifz } from '../types/new';
-import type { QuranStats } from '../hooks/useQuranNew';
 
 // ── Khatma / Plan ─────────────────────────────────────────────
 
@@ -15,33 +14,34 @@ export interface UIKhatma {
   todayRead:   number;
   daysLeft:    number;
   plan:        string;
-  pct:         number;
+  progressPct: number;
 }
 
-export function buildKhatma(plan: KhatmaPlan | null, todayPages: number): UIKhatma {
-  if (!plan) {
-    return { currentPage: 0, totalPages: 604, dailyTarget: 4, todayRead: 0, daysLeft: 0, plan: '—', pct: 0 };
+export function buildKhatma(
+  activePlan: KhatmaPlan | null,
+  todayPages: number
+): UIKhatma {
+  if (!activePlan) {
+    return { currentPage: 0, totalPages: 604, dailyTarget: 4, todayRead: 0, daysLeft: 0, plan: '—', progressPct: 0 };
   }
 
-  const daysLeft = plan.targetDate
-    ? Math.max(0, Math.ceil((new Date(plan.targetDate).getTime() - Date.now()) / 86400000))
+  const daysLeft = activePlan.targetDate
+    ? Math.max(0, Math.ceil((new Date(activePlan.targetDate).getTime() - Date.now()) / 86400000))
     : 0;
 
-  const pct = Math.round((plan.currentPage / plan.totalPages) * 100);
-
   return {
-    currentPage: plan.currentPage,
-    totalPages:  plan.totalPages,
-    dailyTarget: plan.dailyPages,
+    currentPage: activePlan.currentPage,
+    totalPages:  activePlan.totalPages || 604,
+    dailyTarget: activePlan.dailyPages,
     todayRead:   todayPages,
     daysLeft,
-    plan:        `${plan.targetDays}-day`,
-    pct,
+    plan:        `${activePlan.targetDays}-day`,
+    progressPct: Math.round((activePlan.currentPage / (activePlan.totalPages || 604)) * 100),
   };
 }
 
 // ── Juz Grid ──────────────────────────────────────────────────
-// Approximate juz progress from currentPage.
+// Approximates juz completion from currentPage.
 // Each juz ≈ 20 pages (604 / 30 ≈ 20.1)
 
 export interface UIJuz {
@@ -49,101 +49,83 @@ export interface UIJuz {
   pct: number; // 0 = not started, 1-99 = in progress, 100 = done
 }
 
-const PAGES_PER_JUZ = 604 / 30;
-
 export function buildJuzData(currentPage: number): UIJuz[] {
+  const PAGES_PER_JUZ = 604 / 30;
   return Array.from({ length: 30 }, (_, i) => {
-    const juzStart = Math.round(i * PAGES_PER_JUZ) + 1;
-    const juzEnd   = Math.round((i + 1) * PAGES_PER_JUZ);
-
+    const juzStart = i * PAGES_PER_JUZ;
+    const juzEnd   = (i + 1) * PAGES_PER_JUZ;
     let pct = 0;
     if (currentPage >= juzEnd) {
       pct = 100;
-    } else if (currentPage >= juzStart) {
-      pct = Math.round(((currentPage - juzStart + 1) / (juzEnd - juzStart + 1)) * 100);
+    } else if (currentPage > juzStart) {
+      pct = Math.round(((currentPage - juzStart) / PAGES_PER_JUZ) * 100);
     }
-
     return { num: i + 1, pct };
   });
 }
 
 // ── Hifz ──────────────────────────────────────────────────────
 
-export interface UIHifzEntry {
-  num:    number;
-  name:   string;
-  ayahs:  number;
-  mem:    number;
-  status: SurahHifz['status'];
-  pct:    number;
+export interface UIHifzRow {
+  surahNumber: number;
+  surahName:   string;
+  totalAyahs:  number;
+  memorized:   number;
+  status:      SurahHifz['status'];
   reviewLabel: string | null; // "today" | "2d" | null
 }
 
-export function buildHifzList(hifz: SurahHifz[]): UIHifzEntry[] {
+export function buildHifzRows(hifz: SurahHifz[]): UIHifzRow[] {
   const today = new Date().toISOString().split('T')[0];
-
   return hifz.map(s => {
-    const pct = s.totalAyahs > 0 ? Math.round((s.memorizedAyahs / s.totalAyahs) * 100) : 0;
-
     let reviewLabel: string | null = null;
     if (s.nextReviewDate) {
-      const diff = Math.ceil((new Date(s.nextReviewDate).getTime() - Date.now()) / 86400000);
-      if (diff <= 0) reviewLabel = 'today';
-      else if (diff === 1) reviewLabel = '1d';
-      else reviewLabel = `${diff}d`;
+      if (s.nextReviewDate <= today) {
+        reviewLabel = 'today';
+      } else {
+        const daysUntil = Math.ceil(
+          (new Date(s.nextReviewDate).getTime() - Date.now()) / 86400000
+        );
+        reviewLabel = daysUntil <= 7 ? `${daysUntil}d` : null;
+      }
     }
-
     return {
-      num:    s.surahNumber,
-      name:   s.surahName || `Surah ${s.surahNumber}`,
-      ayahs:  s.totalAyahs,
-      mem:    s.memorizedAyahs,
-      status: s.status,
-      pct,
+      surahNumber: s.surahNumber,
+      surahName:   s.surahName || `سورة ${s.surahNumber}`,
+      totalAyahs:  s.totalAyahs || 0,
+      memorized:   s.memorizedAyahs || 0,
+      status:      s.status,
       reviewLabel,
     };
   });
 }
 
 // ── Weekly pages chart ────────────────────────────────────────
-// stats.weeklyPages is a total — we can't break it per day without
-// a per-day endpoint. Show as a single bar for now (deferred).
 
 export interface UIWeekDay {
   day:   string;
   pages: number;
 }
 
+// Placeholder until per-day sessions endpoint exists
+// weeklyPages from stats is a total — distribute evenly for now
 export function buildWeekData(weeklyPages: number): UIWeekDay[] {
-  // Placeholder: distribute evenly across 7 days
-  // Real per-day data needs GET /quran/sessions?week=current
-  const avg = Math.round(weeklyPages / 7);
-  const days = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
-  return days.map(day => ({ day, pages: avg }));
+  const DAYS_AR = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
+  const avg = weeklyPages > 0 ? Math.round(weeklyPages / 7) : 0;
+  return DAYS_AR.map(day => ({ day, pages: avg }));
 }
 
-// ── Top stats ─────────────────────────────────────────────────
+// ── Stats ─────────────────────────────────────────────────────
 
-export interface UIQuranTopStats {
-  khatmaPct:      number;
-  todayRead:      number;
-  dailyTarget:    number;
-  totalMemorized: number;
-  hifzTotal:      number;
-  reviewsDue:     number;
-}
-
-export function buildTopStats(
-  khatma: UIKhatma,
-  stats: QuranStats,
-  hifzCount: number
-): UIQuranTopStats {
-  return {
-    khatmaPct:      khatma.pct,
-    todayRead:      khatma.todayRead,
-    dailyTarget:    khatma.dailyTarget,
-    totalMemorized: stats.totalMemorized,
-    hifzTotal:      hifzCount,
-    reviewsDue:     stats.reviewsDue,
-  };
+export function buildQuranScore(
+  stats: { weeklyPages: number; totalMemorized: number; reviewsDue: number } | null,
+  todayPages: number,
+  dailyTarget: number
+): { score: number; max: number } {
+  if (!stats) return { score: 0, max: 20 };
+  const targetMet = dailyTarget > 0 && todayPages >= dailyTarget;
+  const score = (targetMet ? 10 : todayPages > 0 ? 5 : 0) +
+                (stats.totalMemorized > 0 ? 3 : 0) +
+                (stats.reviewsDue === 0 ? 2 : 0);
+  return { score: Math.min(score, 20), max: 20 };
 }

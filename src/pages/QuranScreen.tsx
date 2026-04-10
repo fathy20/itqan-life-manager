@@ -8,13 +8,13 @@ import { useState } from "react";
 import {
   BookOpen, Brain, CheckCircle2, Plus, Minus, Award,
   Bookmark, Layers, RotateCcw, AlertTriangle, BarChart3,
-  ChevronLeft,
+  ArrowLeft,
 } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from "recharts";
 import { useQuranNew } from "../hooks/useQuranNew";
 import {
-  buildKhatma, buildJuzData, buildHifzList,
-  buildWeekData, buildTopStats,
+  buildKhatma, buildJuzData, buildHifzRows,
+  buildWeekData, buildQuranScore,
 } from "../lib/quran-adapter";
 
 const mono = "'JetBrains Mono', monospace";
@@ -26,8 +26,6 @@ const MUTED  = "#3D5A80";
 const TEXT   = "#C0C8D8";
 const BRIGHT = "#E8EBF0";
 const GREEN  = "#34D399";
-
-// ── Sub-components ────────────────────────────────────────────
 
 function Card({ children, style, glow }: any) {
   return (
@@ -48,11 +46,8 @@ function BarTooltip({ active, payload }: any) {
   );
 }
 
-// ── Main Component ────────────────────────────────────────────
-
 export default function QuranScreen({ onBack }: { onBack?: () => void }) {
-  const { activePlan, hifz, reviewsDue, stats, todayPages, loading, logSession } = useQuranNew();
-
+  const { activePlan, hifz, reviewsDue, stats, todayPages, loading, logSession, updateHifz } = useQuranNew();
   const [logPages,    setLogPages]    = useState(0);
   const [sessionType, setSessionType] = useState<'reading' | 'hifz' | 'review'>('reading');
   const [logging,     setLogging]     = useState(false);
@@ -60,9 +55,14 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
   // Build UI data from live hook data
   const khatma   = buildKhatma(activePlan, todayPages);
   const juzData  = buildJuzData(khatma.currentPage);
-  const hifzList = buildHifzList(hifz);
-  const weekData = buildWeekData(stats.weeklyPages);
-  const topStats = buildTopStats(khatma, stats, hifz.length);
+  const hifzRows = buildHifzRows(hifz);
+  const weekData = buildWeekData(stats?.weeklyPages ?? 0);
+  const { score: quranScore, max: scoreMax } = buildQuranScore(stats, todayPages, khatma.dailyTarget);
+
+  const totalMem    = stats?.totalMemorized ?? 0;
+  const reviewCount = reviewsDue.length;
+  const weekTotal   = stats?.weeklyPages ?? 0;
+  const todayLeft   = Math.max(0, khatma.dailyTarget - khatma.todayRead);
 
   const statusColors: Record<string, string> = {
     memorized:    GREEN,
@@ -80,7 +80,7 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
   const handleLog = async () => {
     if (logPages <= 0 || logging) return;
     setLogging(true);
-    await logSession({ type: sessionType, pages: logPages });
+    await logSession({ type: sessionType, pages: logPages, date: new Date().toISOString().split('T')[0] });
     setLogPages(0);
     setLogging(false);
   };
@@ -99,8 +99,8 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 28, opacity: 0, animation: "fi 0.4s ease forwards" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {onBack && (
-            <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: 10, border: `1px solid ${BORDER}`, background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-              <ChevronLeft size={18} color={MUTED} />
+            <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: 8, background: "transparent", border: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <ArrowLeft size={16} color={MUTED} />
             </button>
           )}
           <div>
@@ -120,59 +120,45 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
         <Card glow={GREEN}>
           <div style={{ fontSize: 10, color: MUTED, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>Khatma progress</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span style={{ fontSize: 34, fontWeight: 700, fontFamily: mono, color: GREEN }}>{topStats.khatmaPct}%</span>
+            <span style={{ fontSize: 34, fontWeight: 700, fontFamily: mono, color: GREEN }}>{khatma.progressPct}%</span>
           </div>
           <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>Page {khatma.currentPage}/{khatma.totalPages}</div>
           <div style={{ height: 4, borderRadius: 2, background: "#0C2550", marginTop: 8, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${topStats.khatmaPct}%`, borderRadius: 2, background: `linear-gradient(90deg, ${GREEN}, #059669)`, boxShadow: `0 0 8px ${GREEN}30` }} />
+            <div style={{ height: "100%", width: `${khatma.progressPct}%`, borderRadius: 2, background: `linear-gradient(90deg, ${GREEN}, #059669)`, boxShadow: `0 0 8px ${GREEN}30` }} />
           </div>
         </Card>
 
         <Card>
           <div style={{ fontSize: 10, color: MUTED, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>Today's target</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span style={{ fontSize: 34, fontWeight: 700, fontFamily: mono, color: topStats.todayRead < topStats.dailyTarget ? "#FBBF24" : GREEN }}>
-              {topStats.todayRead}
-            </span>
-            <span style={{ fontSize: 16, color: "#1A3050", fontFamily: mono }}>/{topStats.dailyTarget}</span>
+            <span style={{ fontSize: 34, fontWeight: 700, fontFamily: mono, color: todayLeft > 0 ? "#FBBF24" : GREEN }}>{khatma.todayRead}</span>
+            <span style={{ fontSize: 16, color: "#1A3050", fontFamily: mono }}>/{khatma.dailyTarget}</span>
           </div>
-          <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>
-            {topStats.todayRead < topStats.dailyTarget
-              ? `${topStats.dailyTarget - topStats.todayRead} pages left today`
-              : "Target complete!"}
-          </div>
+          <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{todayLeft > 0 ? `${todayLeft} pages left today` : "Target complete!"}</div>
         </Card>
 
         <Card>
           <div style={{ fontSize: 10, color: MUTED, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>Surahs memorized</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span style={{ fontSize: 34, fontWeight: 700, fontFamily: mono, color: "#A78BFA" }}>{topStats.totalMemorized}</span>
-            <span style={{ fontSize: 16, color: "#1A3050", fontFamily: mono }}>/{topStats.hifzTotal || '—'}</span>
+            <span style={{ fontSize: 34, fontWeight: 700, fontFamily: mono, color: "#A78BFA" }}>{totalMem}</span>
+            <span style={{ fontSize: 16, color: "#1A3050", fontFamily: mono }}>/{hifzRows.length || '—'}</span>
           </div>
-          <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>
-            {hifzList.filter(s => s.status === "in_progress").length} in progress
-          </div>
+          <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{hifzRows.filter(s => s.status === "in_progress").length} in progress</div>
         </Card>
 
-        <Card glow={topStats.reviewsDue > 0 ? "#F87171" : GREEN}>
+        <Card glow={reviewCount > 0 ? "#F87171" : GREEN}>
           <div style={{ fontSize: 10, color: MUTED, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>Reviews due</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span style={{ fontSize: 34, fontWeight: 700, fontFamily: mono, color: topStats.reviewsDue > 0 ? "#F87171" : GREEN }}>
-              {topStats.reviewsDue}
-            </span>
+            <span style={{ fontSize: 34, fontWeight: 700, fontFamily: mono, color: reviewCount > 0 ? "#F87171" : GREEN }}>{reviewCount}</span>
           </div>
-          <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>
-            {topStats.reviewsDue > 0 ? "Surahs need review today" : "All caught up!"}
-          </div>
+          <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{reviewCount > 0 ? "Surahs need review today" : "All caught up!"}</div>
         </Card>
       </div>
 
       {/* Main Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 }}>
-
-        {/* LEFT: Juz Grid + Hifz */}
+        {/* LEFT */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
           {/* Juz Grid */}
           <Card glow={GREEN}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
@@ -208,41 +194,37 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
           </Card>
 
           {/* Hifz Table */}
-          <Card glow="#A78BFA">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Brain size={14} color="#A78BFA" />
-                <span style={{ fontSize: 14, fontWeight: 600 }}>Hifz progress</span>
+          {hifzRows.length > 0 && (
+            <Card glow="#A78BFA">
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Brain size={14} color="#A78BFA" />
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Hifz progress</span>
+                </div>
               </div>
-            </div>
-
-            {hifzList.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "24px 0", color: MUTED, fontSize: 12 }}>
-                No hifz data yet
-              </div>
-            ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {hifzList.map((s, i) => {
-                  const c = statusColors[s.status] ?? MUTED;
+                {hifzRows.map((s, i) => {
+                  const c   = statusColors[s.status] ?? MUTED;
+                  const pct = s.totalAyahs > 0 ? Math.round((s.memorized / s.totalAyahs) * 100) : 0;
                   return (
-                    <div key={s.num} style={{
+                    <div key={s.surahNumber} style={{
                       display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
                       borderRadius: 10, background: BG, border: `1px solid ${BORDER}`,
                       opacity: 0, animation: `fi 0.3s ease ${i * 0.05}s forwards`,
                     }}>
                       <div style={{ width: 36, height: 36, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: `${c}12`, border: `1px solid ${c}25` }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, fontFamily: mono, color: c }}>{s.num}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, fontFamily: mono, color: c }}>{s.surahNumber}</span>
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ fontSize: 14, fontWeight: 600, fontFamily: ar, color: BRIGHT }}>{s.name}</span>
+                          <span style={{ fontSize: 14, fontWeight: 600, fontFamily: ar, color: BRIGHT }}>{s.surahName}</span>
                           <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: `${c}12`, color: c }}>{statusLabels[s.status]}</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
                           <div style={{ flex: 1, height: 3, borderRadius: 2, background: "#0C2550", overflow: "hidden", maxWidth: 120 }}>
-                            <div style={{ height: "100%", width: `${s.pct}%`, borderRadius: 2, background: c }} />
+                            <div style={{ height: "100%", width: `${pct}%`, borderRadius: 2, background: c }} />
                           </div>
-                          <span style={{ fontSize: 10, fontFamily: mono, color: MUTED }}>{s.mem}/{s.ayahs}</span>
+                          <span style={{ fontSize: 10, fontFamily: mono, color: MUTED }}>{s.memorized}/{s.totalAyahs}</span>
                         </div>
                       </div>
                       {s.reviewLabel === "today" && (
@@ -257,13 +239,12 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
                   );
                 })}
               </div>
-            )}
-          </Card>
+            </Card>
+          )}
         </div>
 
-        {/* RIGHT: Log + Chart + Reviews + Score */}
+        {/* RIGHT */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
           {/* Log Reading */}
           <Card glow={GREEN}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
@@ -282,10 +263,8 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
                 <Plus size={18} color={GREEN} />
               </button>
             </div>
-
-            {/* Session type */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 12 }}>
-              {(['Reading', 'Hifz', 'Review'] as const).map(t => {
+              {(["Reading", "Hifz", "Review"] as const).map(t => {
                 const val = t.toLowerCase() as 'reading' | 'hifz' | 'review';
                 return (
                   <button key={t} onClick={() => setSessionType(val)} style={{
@@ -297,7 +276,6 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
                 );
               })}
             </div>
-
             <button onClick={handleLog} disabled={logPages === 0 || logging} style={{
               width: "100%", padding: "10px", borderRadius: 10, fontSize: 13, fontWeight: 600,
               cursor: logPages > 0 && !logging ? "pointer" : "default",
@@ -316,7 +294,7 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
                 <BarChart3 size={14} color="#60A5FA" />
                 <span style={{ fontSize: 13, fontWeight: 600 }}>Pages this week</span>
               </div>
-              <span style={{ fontSize: 11, fontFamily: mono, color: "#60A5FA" }}>{stats.weeklyPages} total</span>
+              <span style={{ fontSize: 11, fontFamily: mono, color: "#60A5FA" }}>{weekTotal} total</span>
             </div>
             <div style={{ height: 130 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -339,11 +317,11 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
               {reviewsDue.map(s => (
                 <div key={s.surahNumber} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 8, background: BG, border: `1px solid ${BORDER}`, marginBottom: 6 }}>
                   <div>
-                    <span style={{ fontSize: 14, fontWeight: 600, fontFamily: ar, color: BRIGHT }}>{s.surahName || `Surah ${s.surahNumber}`}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, fontFamily: ar, color: BRIGHT }}>{s.surahName || `سورة ${s.surahNumber}`}</span>
                     <span style={{ fontSize: 10, color: MUTED, marginLeft: 8 }}>{s.totalAyahs} ayahs</span>
                   </div>
-                  <button style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, cursor: "pointer", background: "#A78BFA10", border: "1px solid #A78BFA25", color: "#A78BFA" }}>
-                    <RotateCcw size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />Start review
+                  <button onClick={() => updateHifz(s.surahNumber, { status: 'memorized', nextReviewDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0] })} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, cursor: "pointer", background: "#A78BFA10", border: "1px solid #A78BFA25", color: "#A78BFA" }}>
+                    <RotateCcw size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />Done review
                   </button>
                 </div>
               ))}
@@ -357,21 +335,21 @@ export default function QuranScreen({ onBack }: { onBack?: () => void }) {
                 <Award size={14} color={GREEN} />
                 <span style={{ fontSize: 13, fontWeight: 600 }}>Quran score</span>
               </div>
-              <span style={{ fontSize: 14, fontFamily: mono, fontWeight: 700, color: GREEN }}>—/20</span>
+              <span style={{ fontSize: 14, fontFamily: mono, fontWeight: 700, color: GREEN }}>{quranScore}/{scoreMax}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {[
-                { l: "Daily target", v: topStats.todayRead >= topStats.dailyTarget ? "met" : "partial", pts: topStats.todayRead >= topStats.dailyTarget ? "10" : "0", c: topStats.todayRead >= topStats.dailyTarget ? GREEN : "#FBBF24" },
-                { l: "Memorized",    v: `${topStats.totalMemorized} surahs`, pts: "—", c: "#A78BFA" },
-                { l: "Reviews done", v: `${reviewsDue.length === 0 ? "all clear" : `${reviewsDue.length} pending`}`, pts: "—", c: "#60A5FA" },
-                { l: "Weekly pages", v: `${stats.weeklyPages}`, pts: "—", c: GREEN },
+                { l: "Daily target", v: khatma.todayRead >= khatma.dailyTarget ? "complete" : `${khatma.todayRead}/${khatma.dailyTarget}`, pts: khatma.todayRead >= khatma.dailyTarget ? "10" : khatma.todayRead > 0 ? "5" : "0", c: khatma.todayRead >= khatma.dailyTarget ? GREEN : "#FBBF24" },
+                { l: "Memorized",    v: `${totalMem} surahs`,  pts: totalMem > 0 ? "3" : "0", c: "#A78BFA" },
+                { l: "Reviews",      v: reviewCount === 0 ? "all done" : `${reviewCount} due`, pts: reviewCount === 0 ? "2" : "0", c: reviewCount === 0 ? GREEN : "#F87171" },
+                { l: "Weekly pages", v: `${weekTotal} pages`,  pts: weekTotal > 20 ? "5" : weekTotal > 0 ? "2" : "0", c: "#60A5FA" },
               ].map(s => (
                 <div key={s.l} style={{ padding: "8px 12px", borderRadius: 8, background: BG, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: 10, color: MUTED }}>{s.l}</div>
                     <div style={{ fontSize: 11, fontFamily: mono, color: TEXT }}>{s.v}</div>
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 700, fontFamily: mono, color: s.c }}>{s.pts}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, fontFamily: mono, color: s.c }}>+{s.pts}</span>
                 </div>
               ))}
             </div>

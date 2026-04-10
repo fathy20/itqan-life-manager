@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
 //  src/hooks/useQuranNew.ts
-//  NEW Quran hook — Phase 1: khatma + hifz + stats + log session
+//  NEW Quran hook — Phase 1
 //  Part of Quran vertical slice
 //  DO NOT use in legacy screens
 // ═══════════════════════════════════════════════════════════════
@@ -9,39 +9,31 @@ import { useState, useEffect, useCallback } from 'react';
 import { quranApiNew } from '../lib/api/index';
 import type { KhatmaPlan, SurahHifz } from '../types/new';
 
-export interface QuranStats {
-  weeklyPages:    number;
-  totalMemorized: number;
-  reviewsDue:     number;
-}
-
 export interface UseQuranReturn {
   // Data
   activePlan:  KhatmaPlan  | null;
   hifz:        SurahHifz[];
   reviewsDue:  SurahHifz[];
-  stats:       QuranStats;
-  todayPages:  number;        // pages logged today (derived from sessions)
+  stats:       { weeklyPages: number; totalMemorized: number; reviewsDue: number } | null;
+  todayPages:  number;  // pages logged today (derived from sessions)
 
   // States
-  loading: boolean;
-  error:   string | null;
+  loading:  boolean;
+  error:    string | null;
 
   // Actions
   logSession: (data: {
     type: 'reading' | 'hifz' | 'review';
-    pages?: number;           // shorthand: fromPage = currentPage, toPage = currentPage + pages
-    fromPage?: number;
-    toPage?: number;
+    pages?: number;
     surah?: number;
-    durationMinutes?: number;
+    date: string;
   }) => Promise<void>;
   updateHifz: (surahNum: number, data: {
     memorizedAyahs?: number;
     status?: SurahHifz['status'];
     nextReviewDate?: string;
   }) => Promise<void>;
-  createPlan: (data: { targetDays: number; dailyPages: number; startPage?: number }) => Promise<void>;
+  createPlan: (data: { targetDays: number; dailyPages: number }) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -51,10 +43,11 @@ export function useQuranNew(): UseQuranReturn {
   const [activePlan,  setActivePlan]  = useState<KhatmaPlan | null>(null);
   const [hifz,        setHifz]        = useState<SurahHifz[]>([]);
   const [reviewsDue,  setReviewsDue]  = useState<SurahHifz[]>([]);
-  const [stats,       setStats]       = useState<QuranStats>({ weeklyPages: 0, totalMemorized: 0, reviewsDue: 0 });
+  const [stats,       setStats]       = useState<{ weeklyPages: number; totalMemorized: number; reviewsDue: number } | null>(null);
   const [todayPages,  setTodayPages]  = useState(0);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -73,12 +66,9 @@ export function useQuranNew(): UseQuranReturn {
       }
       if (hifzRes.success    && hifzRes.data)    setHifz(hifzRes.data);
       if (reviewsRes.success && reviewsRes.data) setReviewsDue(reviewsRes.data);
-      if (statsRes.success   && statsRes.data) {
-        setStats(statsRes.data);
-        // reviewsDue count from stats is more reliable than the list length
-      }
+      if (statsRes.success   && statsRes.data)   setStats(statsRes.data);
 
-      // Silent offline mode — no blocking error
+      // All failed = backend down → silent offline mode
       const allFailed = !plansRes.success && !hifzRes.success && !reviewsRes.success && !statsRes.success;
       if (allFailed) {
         console.warn('Backend unavailable — Quran in offline mode');
@@ -92,40 +82,26 @@ export function useQuranNew(): UseQuranReturn {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // ── Actions ─────────────────────────────────────────────────
-
   const logSession = async (data: {
     type: 'reading' | 'hifz' | 'review';
     pages?: number;
-    fromPage?: number;
-    toPage?: number;
     surah?: number;
-    durationMinutes?: number;
+    date: string;
   }) => {
-    // Resolve fromPage/toPage from shorthand `pages`
-    let fromPage = data.fromPage;
-    let toPage   = data.toPage;
-
-    if (data.pages && data.pages > 0 && activePlan) {
-      fromPage = activePlan.currentPage;
-      toPage   = activePlan.currentPage + data.pages - 1;
+    const payload: any = { type: data.type, date: data.date };
+    if (data.type === 'reading' && data.pages && activePlan) {
+      payload.fromPage = activePlan.currentPage;
+      payload.toPage   = activePlan.currentPage + data.pages;
     }
+    if (data.surah) payload.surah = data.surah;
 
-    const res = await quranApiNew.logSession({
-      type: data.type,
-      fromPage,
-      toPage,
-      surah: data.surah,
-      durationMinutes: data.durationMinutes,
-      date: today,
-    });
-
+    const res = await quranApiNew.logSession(payload);
     if (res.success) {
       // Optimistic: update todayPages locally
       if (data.type === 'reading' && data.pages) {
         setTodayPages(prev => prev + data.pages!);
       }
-      await fetchAll(); // refetch to sync plan currentPage
+      await fetchAll();
     }
   };
 
@@ -138,7 +114,7 @@ export function useQuranNew(): UseQuranReturn {
     if (res.success) await fetchAll();
   };
 
-  const createPlan = async (data: { targetDays: number; dailyPages: number; startPage?: number }) => {
+  const createPlan = async (data: { targetDays: number; dailyPages: number }) => {
     const res = await quranApiNew.createPlan(data);
     if (res.success) await fetchAll();
   };
