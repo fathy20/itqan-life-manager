@@ -11,22 +11,21 @@ export interface UseFastingReturn {
   year:        number;
   month:       number;
 
-  setMonth:    (year: number, month: number) => void;
-  logDay:      (date: string, type: FastingType, completed: boolean, notes?: string) => Promise<void>;
-  updateDay:   (date: string, completed: boolean, notes?: string) => Promise<void>;
-  updateQada:  (totalOwed: number, completed: number) => Promise<void>;
-  refetch:     () => Promise<void>;
+  setMonth:   (year: number, month: number) => void;
+  logDay:     (date: string, type: FastingType, completed: boolean, notes?: string) => Promise<void>;
+  addQada:    (delta: number) => Promise<void>;   // +1 completed, -1 to undo
+  refetch:    () => Promise<void>;
 }
 
 export function useFastingNew(): UseFastingReturn {
   const now = new Date();
-  const [year,        setYear]        = useState(now.getFullYear());
-  const [month,       setMonthState]  = useState(now.getMonth() + 1);
-  const [days,        setDays]        = useState<FastingDay[]>([]);
-  const [qada,        setQada]        = useState<FastingQada | null>(null);
+  const [year,        setYear]       = useState(now.getFullYear());
+  const [month,       setMonthState] = useState(now.getMonth() + 1);
+  const [days,        setDays]       = useState<FastingDay[]>([]);
+  const [qada,        setQada]       = useState<FastingQada | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState<string | null>(null);
+  const [loading,     setLoading]    = useState(true);
+  const [error,       setError]      = useState<string | null>(null);
 
   const fetchAll = useCallback(async (y: number, m: number) => {
     setLoading(true);
@@ -65,21 +64,14 @@ export function useFastingNew(): UseFastingReturn {
     }
   };
 
-  const updateDay = async (date: string, completed: boolean, notes?: string) => {
-    const res = await fastingApiNew.updateDay(date, completed, notes);
-    if (res.success && res.data) {
-      setDays(prev => prev.map(d => d.date === date ? res.data! : d));
-    }
-  };
-
-  const updateQada = async (totalOwed: number, completed: number) => {
-    const res = await fastingApiNew.updateQada(totalOwed, completed);
+  const addQada = async (delta: number) => {
+    const res = await fastingApiNew.updateQada(delta);
     if (res.success && res.data) setQada(res.data);
   };
 
   return {
     days, qada, suggestions, loading, error, year, month,
-    setMonth, logDay, updateDay, updateQada,
+    setMonth, logDay, addQada,
     refetch: () => fetchAll(year, month),
   };
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Moon, CheckCircle2, Circle, ChevronLeft, ChevronRight,
-  RefreshCw, AlertCircle, ArrowRight, Lightbulb,
+  RefreshCw, AlertCircle, ArrowRight, Lightbulb, Plus, Minus,
 } from "lucide-react";
 import { useFastingNew } from "../hooks/useFastingNew";
 import type { FastingType } from "../types/new";
@@ -68,14 +68,12 @@ export default function FastingSystem({ onBack }: { onBack?: () => void }) {
   const {
     days, qada, suggestions, loading, error,
     year, month, setMonth,
-    logDay, updateDay, updateQada, refetch,
+    logDay, addQada, refetch,
   } = useFastingNew();
 
-  const [logDate,   setLogDate]   = useState(new Date().toISOString().slice(0, 10));
-  const [logType,   setLogType]   = useState<FastingType>("monday_thursday");
-  const [logNotes,  setLogNotes]  = useState("");
-  const [qadaOwed,  setQadaOwed]  = useState<string>("");
-  const [qadaDone,  setQadaDone]  = useState<string>("");
+  const [logDate,  setLogDate]  = useState(new Date().toISOString().slice(0, 10));
+  const [logType,  setLogType]  = useState<FastingType>("monday_thursday");
+  const [logNotes, setLogNotes] = useState("");
 
   const completedThisMonth = days.filter(d => d.completed).length;
 
@@ -94,17 +92,9 @@ export default function FastingSystem({ onBack }: { onBack?: () => void }) {
     setLogNotes("");
   };
 
-  const handleToggle = async (date: string, current: boolean) => {
-    await updateDay(date, !current);
-  };
-
-  const handleSaveQada = async () => {
-    const owed = parseInt(qadaOwed, 10);
-    const done = parseInt(qadaDone, 10);
-    if (isNaN(owed) || isNaN(done)) return;
-    await updateQada(owed, done);
-    setQadaOwed("");
-    setQadaDone("");
+  // Toggle uses logDay as upsert
+  const handleToggle = async (day: typeof days[number]) => {
+    await logDay(day.date, day.type, !day.completed);
   };
 
   return (
@@ -177,7 +167,6 @@ export default function FastingSystem({ onBack }: { onBack?: () => void }) {
               </button>
             </div>
 
-            {/* Day list */}
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {days.length === 0 && !loading && (
                 <div style={{ fontSize: 12, color: MUTED }}>لا توجد أيام مسجلة لهذا الشهر.</div>
@@ -190,7 +179,7 @@ export default function FastingSystem({ onBack }: { onBack?: () => void }) {
                     padding: "10px 12px", borderRadius: 10, border: `1px solid ${BORDER}`, background: BG,
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <button onClick={() => handleToggle(d.date, d.completed)} style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0 }}>
+                      <button onClick={() => handleToggle(d)} style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0 }}>
                         {d.completed
                           ? <CheckCircle2 size={18} color={GREEN} />
                           : <Circle size={18} color={MUTED} />}
@@ -258,45 +247,43 @@ export default function FastingSystem({ onBack }: { onBack?: () => void }) {
               title="متابعة القضاء"
               badge={qada ? <Badge label={`${qada.remaining} متبقي`} color={ROSE} /> : undefined}
             />
-            {qada && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
-                {[
-                  { label: "المطلوب", value: qada.totalOwed, color: ROSE },
-                  { label: "المكتمل", value: qada.completed, color: GREEN },
-                  { label: "المتبقي",  value: qada.remaining, color: GOLD },
-                ].map(s => (
-                  <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <span style={{ fontSize: 11, color: MUTED }}>{s.label}</span>
-                    <span style={{ fontSize: 22, fontWeight: 700, color: s.color, fontFamily: mono }}>{s.value}</span>
-                  </div>
-                ))}
+            {qada ? (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+                  {[
+                    { label: "المطلوب", value: qada.totalOwed,  color: ROSE },
+                    { label: "المكتمل", value: qada.completed,  color: GREEN },
+                    { label: "المتبقي", value: qada.remaining,  color: GOLD },
+                  ].map(s => (
+                    <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span style={{ fontSize: 11, color: MUTED }}>{s.label}</span>
+                      <span style={{ fontSize: 22, fontWeight: 700, color: s.color, fontFamily: mono }}>{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => addQada(1)} style={{
+                    flex: 1, padding: "10px 12px", borderRadius: 10,
+                    background: `${GREEN}18`, border: `1px solid ${GREEN}35`, color: GREEN,
+                    fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  }}>
+                    <Plus size={14} /> قضيت يومًا
+                  </button>
+                  <button onClick={() => addQada(-1)} disabled={qada.completed === 0} style={{
+                    padding: "10px 12px", borderRadius: 10,
+                    background: `${MUTED}12`, border: `1px solid ${MUTED}30`, color: MUTED,
+                    fontWeight: 700, cursor: qada.completed > 0 ? "pointer" : "not-allowed",
+                    display: "flex", alignItems: "center", gap: 6,
+                  }}>
+                    <Minus size={14} /> تراجع
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 12, color: MUTED }}>
+                {loading ? "جاري التحميل..." : "لا بيانات قضاء. سيتم إنشاء سجل تلقائيًا عند أول تعديل."}
               </div>
             )}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <div>
-                <div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>إجمالي المطلوب</div>
-                <input
-                  type="number" min={0} value={qadaOwed} onChange={e => setQadaOwed(e.target.value)}
-                  placeholder={qada ? String(qada.totalOwed) : "0"}
-                  style={{ width: "100%", background: BG, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "10px 12px", fontSize: 13 }}
-                />
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>المكتمل</div>
-                <input
-                  type="number" min={0} value={qadaDone} onChange={e => setQadaDone(e.target.value)}
-                  placeholder={qada ? String(qada.completed) : "0"}
-                  style={{ width: "100%", background: BG, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "10px 12px", fontSize: 13 }}
-                />
-              </div>
-            </div>
-            <button onClick={handleSaveQada} disabled={!qadaOwed && !qadaDone} style={{
-              marginTop: 10, width: "100%", padding: "10px 14px", borderRadius: 10,
-              background: `${CYAN}15`, border: `1px solid ${CYAN}35`, color: CYAN,
-              fontWeight: 700, cursor: "pointer",
-            }}>
-              حفظ القضاء
-            </button>
           </Card>
 
           {/* Suggestions */}
