@@ -158,6 +158,16 @@ export interface DayAdhkarLog {
   updatedAt: string;
 }
 
+export interface AdhkarStats {
+  completionRate: number;
+  streak: number;
+  morningRate: number;
+  eveningRate: number;
+  sleepRate: number;
+  afterPrayerRate: number;
+  period: 'week' | 'month';
+}
+
 // ─── Fasting ─────────────────────────────────────────────────
 export type FastingType =
   | "ramadan" | "monday_thursday" | "ayyam_beed"
@@ -358,12 +368,29 @@ export interface Halaqah {
 }
 
 export interface HalaqahChallenge {
+  id: string;
   description: string;
   descriptionAr?: string;
   startDate: string;
   endDate: string;
-  type: "adhkar" | "quran" | "fasting" | "salah" | "custom";
-  completions: Record<string, boolean[]>;
+  type: 'adhkar' | 'quran' | 'fasting' | 'salah' | 'custom';
+  completedCount: number;
+  totalMembers: number;
+}
+
+export interface HalaqahLeaderboardEntry {
+  displayName: string;
+  rankTitle: string;
+  weeklyRingPercent: number;
+  streakDays: number;
+}
+
+export interface HalaqahSummary {
+  id: string;
+  name: string;
+  memberCount: number;
+  inviteCode: string;
+  createdBy: boolean;
 }
 
 export interface HalaqahSettings {

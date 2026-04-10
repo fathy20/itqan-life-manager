@@ -27,8 +27,16 @@ export async function request<T>(
     ...(options.headers as Record<string, string> || {}),
   };
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
   try {
-    const res = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
     const data = await res.json();
 
     if (!res.ok) {
@@ -41,6 +49,10 @@ export async function request<T>(
 
     return data;
   } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      return { success: false, message: 'انتهت مهلة الطلب', code: 'TIMEOUT' };
+    }
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Network error',

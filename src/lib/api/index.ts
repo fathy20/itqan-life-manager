@@ -9,3 +9,6 @@ export { profileApiNew } from './profile';
 export { salahApiNew } from './salah';
 export { scoreApiNew } from './score';
 export { quranApiNew } from './quran';
+export { adhkarApiNew } from './adhkar';
+export { halaqahApiNew } from './halaqah';
+export { fastingApiNew } from './fasting';

@@ -9,8 +9,8 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Moon, BookOpen, Star, GraduationCap, Briefcase,
   Wallet, Users, Heart, Calendar, Timer, Sparkles, ChevronRight,
-  Flame, TrendingUp, Shield, Settings, Bell, Search, Command,
-  Clock, LogOut,
+  Flame, TrendingUp, Shield, Bell, Search, Command,
+  Clock, LogOut, Droplets,
 } from "lucide-react";
 import { useHomeNew } from "../hooks/useHomeNew";
 import {
@@ -41,6 +41,7 @@ const MODULES: ModuleDef[] = [
   { id: "salah",     nameAr: "الصلاة",    nameEn: "Salah",     icon: Moon,            color: "#A78BFA", desc: "مواقيت وتتبع الصلوات",         size: "normal" },
   { id: "quran",     nameAr: "القرآن",    nameEn: "Quran",     icon: BookOpen,        color: "#34D399", desc: "ختمة · حفظ · مراجعة",           size: "normal" },
   { id: "adhkar",    nameAr: "الأذكار",   nameEn: "Adhkar",    icon: Star,            color: "#FBBF24", desc: "أذكار الصباح والمساء",           size: "normal" },
+  { id: "fasting",   nameAr: "الصيام",    nameEn: "Fasting",   icon: Droplets,        color: "#818CF8", desc: "الصيام · القضاء · النوافل",       size: "normal" },
   { id: "sibaq",     nameAr: "السباق",    nameEn: "Sibaq",     icon: Users,           color: "#F472B6", desc: "تنافس مع أصحابك",               size: "normal" },
   { id: "study",     nameAr: "الدراسة",   nameEn: "Study",     icon: GraduationCap,   color: "#60A5FA", desc: "المواد والامتحانات",             size: "normal" },
   { id: "work",      nameAr: "العمل",     nameEn: "Work",      icon: Briefcase,       color: "#FB923C", desc: "مهام · مشاريع · كورسات",         size: "normal" },
@@ -195,7 +196,7 @@ function QuickStatItem({ icon: Icon, label, value, color }: {
 
 // ── Main Component ────────────────────────────────────────────
 
-export default function HomeScreen({ onNavigate }: { onNavigate?: (id: string) => void }) {
+export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id: string) => void; onLogout?: () => void }) {
   const { profile, todayScore, shared, prayerLog, times, loading, timesLoading, error, refetch } = useHomeNew();
 
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -304,8 +305,8 @@ export default function HomeScreen({ onNavigate }: { onNavigate?: (id: string) =
               <div style={{ position: "absolute", top: 6, right: 6, width: 6, height: 6, borderRadius: "50%", background: "#08A7E7" }} />
             </button>
 
-            <button style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "#0A1628", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-              <Settings size={15} color="#3D5A80" />
+            <button onClick={onLogout} title="تسجيل الخروج" style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "#0A1628", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <LogOut size={15} color="#3D5A80" />
             </button>
 
             <div style={{ width: 1, height: 24, background: "#0F2847" }} />
