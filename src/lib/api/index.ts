@@ -12,3 +12,5 @@ export { quranApiNew } from './quran';
 export { adhkarApiNew } from './adhkar';
 export { halaqahApiNew } from './halaqah';
 export { fastingApiNew } from './fasting';
+export { aiApiNew } from './ai';
+export { intelligenceApiNew } from './intelligence';
