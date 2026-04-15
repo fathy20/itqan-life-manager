@@ -1,19 +1,25 @@
+/**
+ * HealthScreen — Lifestyle logs, Habits, Exercise tracking
+ * Connected to: lifestyleApiNew, habitsApiNew
+ */
 import { useState, useEffect, useCallback } from "react";
 import {
   Heart, ArrowLeft, Moon, Smartphone, Droplets,
-  Footprints, Check, Flame
+  Footprints, Dumbbell, Plus, Check, Flame,
 } from "lucide-react";
 import { lifestyleApiNew, habitsApiNew } from "../lib/api/index";
 import type { LifestyleLog, Habit } from "../types/new";
 
 const BG = "#020617";
-const CARD_BG = "rgba(15, 23, 42, 0.7)";
-const BORDER_COLOR = "rgba(51, 65, 85, 0.4)";
-const ACCENT = "#EF4444"; // Red for Health
+const CARD = "rgba(15, 23, 42, 0.7)";
+const BORDER = "rgba(51, 65, 85, 0.4)";
+const TEXT = "#C0C8D8";
+const MUTED = "#3D5A80";
+const ACCENT = "#F87171";
 
 const TABS = [
-  { id: "today", label: "تقرير اليوم" },
-  { id: "habits", label: "نظام العادات" },
+  { id: "today", label: "اليوم" },
+  { id: "habits", label: "العادات" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -25,17 +31,6 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const today = new Date().toISOString().split("T")[0];
-
-  const SystemLogo = () => (
-    <div style={{
-      width: 40, height: 40, borderRadius: "12px",
-      background: `linear-gradient(135deg, ${ACCENT}, #B91C1C)`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      boxShadow: `0 8px 16px ${ACCENT}30`
-    }}>
-      <Heart color="white" size={20} />
-    </div>
-  );
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -55,7 +50,14 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
 
   const saveToday = async () => {
     setSaving(true);
-    await lifestyleApiNew.create({ ...todayLog, date: today } as any);
+    await lifestyleApiNew.create({
+      ...todayLog,
+      date: today,
+      sleepHours: todayLog.sleepHours || 0,
+      phoneHours: todayLog.phoneHours || 0,
+      waterLiters: todayLog.waterLiters || 0,
+      steps: todayLog.steps || 0,
+    } as any);
     setSaving(false);
   };
 
@@ -82,101 +84,109 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: BG, color: "#F1F5F9", paddingBottom: 60 }}>
-       <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet" />
-       <style>{`
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .glass-card { background: ${CARD_BG}; backdrop-filter: blur(12px); border: 1px solid ${BORDER_COLOR}; border-radius: 24px; }
-      `}</style>
+    <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+      <style>{`@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }`}</style>
 
       {/* Header */}
-      <header style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "24px 40px", borderBottom: `1px solid ${BORDER_COLOR}`, background: "rgba(2, 6, 23, 0.8)",
-        backdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 100
-      }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: "#94A3B8", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600 }}>
-          <ArrowLeft size={18} /> الرئيسية
-        </button>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ textAlign: "right" }}>
-            <h1 style={{ fontSize: "18px", fontWeight: 900, margin: 0, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>الصحة والعادات</h1>
-            <p style={{ fontSize: "10px", color: ACCENT, letterSpacing: "2px", fontWeight: 700, margin: 0 }}>HEALTH ENGINE</p>
-          </div>
-          <SystemLogo />
-        </div>
-      </header>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 24px", borderBottom: `1px solid ${BORDER}`, position: "sticky", top: 0, background: "rgba(2, 6, 23, 0.8)", backdropFilter: "blur(20px)", zIndex: 10 }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 8, background: "transparent", border: `1px solid ${BORDER}`, color: MUTED, cursor: "pointer", fontSize: 13 }}><ArrowLeft size={16} /> الرئيسية</button>
+        <div style={{ flex: 1 }} />
+        <Heart size={20} color={ACCENT} />
+        <span style={{ fontSize: 18, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>الصحة</span>
+      </div>
 
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 24px" }}>
-        
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: "24px 20px" }}>
         {/* Tabs */}
-        <div style={{ display: "flex", gap: "12px", marginBottom: "32px", animation: "fadeInUp 0.6s ease-out" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
-              flex: 1, padding: "14px", borderRadius: "16px", cursor: "pointer", fontSize: "14px", fontWeight: 700,
-              background: tab === t.id ? `${ACCENT}15` : CARD_BG,
-              border: `1px solid ${tab === t.id ? ACCENT : BORDER_COLOR}`,
-              color: tab === t.id ? ACCENT : "#94A3B8",
-              fontFamily: "'Noto Kufi Arabic', sans-serif", transition: "all 0.3s"
+              padding: "10px 24px", borderRadius: 12, cursor: "pointer", fontSize: 14, fontWeight: 600,
+              background: tab === t.id ? ACCENT + "15" : CARD,
+              border: `1px solid ${tab === t.id ? ACCENT + "40" : BORDER}`,
+              color: tab === t.id ? ACCENT : MUTED,
+              fontFamily: "'Noto Kufi Arabic', sans-serif",
             }}>{t.label}</button>
           ))}
         </div>
 
-        {loading ? <div style={{ textAlign: "center", padding: 60, color: "#475569" }}>جاري مزامنة بياناتك الصحية...</div> : (
+        {loading ? <div style={{ textAlign: "center", padding: 60, color: MUTED }}>جاري التحميل...</div> : (
           <>
+            {/* Today Tab */}
             {tab === "today" && (
-              <div style={{ animation: "fadeInUp 0.6s ease-out 0.1s both" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
-                   {[
-                     { icon: Moon, label: "ساعات النوم", key: "sleepHours", color: "#818CF8", unit: "ساعة" },
-                     { icon: Smartphone, label: "وقت الهاتف", key: "phoneHours", color: "#F59E0B", unit: "ساعة" },
-                     { icon: Droplets, label: "شرب الماء", key: "waterLiters", color: "#3B82F6", unit: "لتر" },
-                     { icon: Footprints, label: "الخطوات", key: "steps", color: "#10B981", unit: "خطوة" },
-                   ].map((item, i) => (
-                      <div key={i} className="glass-card" style={{ padding: 24 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                          <div style={{ width: 36, height: 36, borderRadius: "10px", background: `${item.color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                             <item.icon size={18} color={item.color} />
-                          </div>
-                          <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{item.label}</span>
-                        </div>
-                        <input
-                          type="number"
-                          value={(todayLog as any)[item.key] || ""}
-                          onChange={e => setTodayLog(prev => ({ ...prev, [item.key]: parseFloat(e.target.value) || 0 }))}
-                          style={{ width: "100%", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "12px", padding: "12px", color: "white", fontSize: "20px", fontWeight: 900, textAlign: "center", fontFamily: "'JetBrains Mono', monospace" }}
-                        />
-                        <div style={{ textAlign: "center", marginTop: 8, fontSize: 10, color: "#64748B", fontWeight: 700 }}>{item.unit}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                {[
+                  { icon: Moon, label: "ساعات النوم", key: "sleepHours" as const, color: "#818CF8", unit: "ساعة", max: 12 },
+                  { icon: Smartphone, label: "وقت الهاتف", key: "phoneHours" as const, color: "#FB923C", unit: "ساعة", max: 12 },
+                  { icon: Droplets, label: "شرب الماء", key: "waterLiters" as const, color: "#06B6D4", unit: "لتر", max: 5 },
+                  { icon: Footprints, label: "الخطوات", key: "steps" as const, color: "#10B981", unit: "خطوة", max: 20000 },
+                ].map(item => (
+                  <div key={item.key} style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, animation: "fadeIn 0.3s" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: item.color + "15" }}>
+                        <item.icon size={18} color={item.color} />
                       </div>
-                   ))}
+                      <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{item.label}</span>
+                    </div>
+                    <input
+                      type="number"
+                      value={(todayLog as any)[item.key] || ""}
+                      onChange={e => setTodayLog(prev => ({ ...prev, [item.key]: parseFloat(e.target.value) || 0 }))}
+                      placeholder={`0 ${item.unit}`}
+                      style={{ width: "100%", background: BG, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "10px 14px", color: TEXT, fontSize: 20, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textAlign: "center" }}
+                    />
+                    <div style={{ fontSize: 10, color: MUTED, textAlign: "center", marginTop: 6 }}>{item.unit}</div>
+                  </div>
+                ))}
+
+                <div style={{ gridColumn: "span 2" }}>
+                  <button onClick={saveToday} disabled={saving} style={{
+                    width: "100%", padding: "14px", borderRadius: 12,
+                    background: ACCENT + "20", border: `1px solid ${ACCENT}40`,
+                    color: ACCENT, cursor: "pointer", fontSize: 15, fontWeight: 700,
+                    fontFamily: "'Noto Kufi Arabic', sans-serif",
+                    opacity: saving ? 0.5 : 1,
+                  }}>{saving ? "جاري الحفظ..." : "💾 حفظ تسجيل اليوم"}</button>
                 </div>
-                <button onClick={saveToday} disabled={saving} style={{
-                  width: "100%", padding: "16px", borderRadius: "16px", background: ACCENT, color: "white",
-                  border: "none", cursor: "pointer", fontWeight: 900, boxShadow: `0 8px 30px ${ACCENT}40`
-                }}>{saving ? "جاري الحفظ..." : "حفظ تقرير اليوم"}</button>
               </div>
             )}
 
-            {tab === "habits" && habits.map((h, i) => {
-              const isDone = (h.completedDates || []).includes(today);
-              const streak = getStreak(h.completedDates || []);
-              return (
-                <div key={h.id} onClick={() => toggleHabit(h)} className="glass-card" style={{
-                  padding: "20px 24px", marginBottom: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 16,
-                  borderRight: `4px solid ${isDone ? "#10B981" : "#334155"}`, transition: "all 0.3s"
-                }}>
-                   <div style={{
-                     width: 32, height: 32, borderRadius: "10px", border: `2px solid ${isDone ? "#10B981" : "#334155"}`,
-                     background: isDone ? "#10B981" : "none", display: "flex", alignItems: "center", justifyContent: "center"
-                   }}>{isDone && <Check size={18} color="white" />}</div>
-                   <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 16, fontWeight: 700, color: isDone ? "#F1F5F9" : "#94A3B8", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{h.name}</p>
-                      <p style={{ fontSize: 11, color: "#64748B" }}>{h.nameAr}</p>
-                   </div>
-                   {streak > 0 && <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#F59E0B", fontWeight: 800 }}> <Flame size={16} /> {streak} </div>}
-                </div>
-              );
-            })}
+            {/* Habits Tab */}
+            {tab === "habits" && (
+              <div>
+                {habits.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد عادات بعد</div>
+                ) : habits.map(h => {
+                  const isDone = (h.completedDates || []).includes(today);
+                  const streak = getStreak(h.completedDates || []);
+                  return (
+                    <div key={h.id} onClick={() => toggleHabit(h)} style={{
+                      display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
+                      background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${isDone ? "#10B98140" : BORDER}`,
+                      borderRadius: 14, marginBottom: 10, cursor: "pointer",
+                      transition: "all 0.2s", animation: "fadeIn 0.3s",
+                    }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: 8,
+                        border: `2px solid ${isDone ? "#10B981" : BORDER}`,
+                        background: isDone ? "#10B98120" : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>{isDone && <Check size={14} color="#10B981" />}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Noto Kufi Arabic', sans-serif", color: isDone ? "#10B981" : TEXT }}>{h.name}</div>
+                        {h.nameAr && <div style={{ fontSize: 12, color: MUTED }}>{h.nameAr}</div>}
+                      </div>
+                      {streak > 0 && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "#FB923C" }}>
+                          <Flame size={14} /> {streak}
+                        </div>
+                      )}
+                      {h.icon && <span style={{ fontSize: 20 }}>{h.icon}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
       </div>
