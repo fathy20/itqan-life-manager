@@ -199,7 +199,6 @@ function QuickStatItem({ icon: Icon, label, value, color }: {
 export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id: string) => void; onLogout?: () => void }) {
   const { profile, todayScore, shared, prayerLog, times, loading, timesLoading, error, refetch } = useHomeNew();
 
-  const [activeModule, setActiveModule] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [time, setTime] = useState(new Date());
 
@@ -216,11 +215,7 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
   const avatarLetter = buildAvatarLetter(profile);
 
   const handleModuleClick = (id: string) => {
-    setActiveModule(id);
-    setTimeout(() => {
-      setActiveModule(null);
-      onNavigate?.(id);
-    }, 400);
+    onNavigate?.(id);
   };
 
   // ── Error state ───────────────────────────────────────────
@@ -389,24 +384,7 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
         </div>
       </div>
 
-      {/* Module transition overlay */}
-      {activeModule && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: BG, display: "flex", alignItems: "center", justifyContent: "center", animation: "fadeIn 0.3s ease" }}>
-          <div style={{ textAlign: "center", animation: "slideDown 0.4s ease" }}>
-            {(() => {
-              const mod = MODULES.find(m => m.id === activeModule);
-              if (!mod) return null;
-              return (
-                <>
-                  <mod.icon size={40} color={mod.color} style={{ marginBottom: 16 }} />
-                  <div style={{ fontSize: 24, fontWeight: 700, color: mod.color, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{mod.nameAr}</div>
-                  <div style={{ fontSize: 12, color: "#3D5A80", marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>Loading...</div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

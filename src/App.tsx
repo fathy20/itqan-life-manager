@@ -10,6 +10,11 @@ import SibaqSystem from './pages/SibaqSystem';
 import FastingSystem from './pages/FastingSystem';
 import CoachScreen from './pages/CoachScreen';
 import IntelligenceScreen from './pages/IntelligenceScreen';
+import WorkScreen from './pages/WorkScreen';
+import FinanceScreen from './pages/FinanceScreen';
+import HealthScreen from './pages/HealthScreen';
+import FocusScreen from './pages/FocusScreen';
+import StudyScreen from './pages/StudyScreen';
 import { signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
 import { ArrowLeft, Clock } from 'lucide-react';
@@ -81,15 +86,15 @@ function AppInner() {
   if (activePage === 'sibaq')        return <SibaqSystem onBack={goHome} />;
   if (activePage === 'coach')        return <CoachScreen onBack={goHome} />;
   if (activePage === 'intelligence') return <IntelligenceScreen onBack={goHome} />;
+  if (activePage === 'work')      return <WorkScreen onBack={goHome} />;
+  if (activePage === 'finance')   return <FinanceScreen onBack={goHome} />;
+  if (activePage === 'lifestyle') return <HealthScreen onBack={goHome} />;
+  if (activePage === 'focus')     return <FocusScreen onBack={goHome} />;
+  if (activePage === 'study')     return <StudyScreen onBack={goHome} />;
 
   // ── Coming-soon modules ───────────────────────────────────
   const COMING_SOON: Record<string, { nameAr: string; nameEn: string }> = {
-    study:     { nameAr: 'الدراسة',  nameEn: 'Study'    },
-    work:      { nameAr: 'العمل',    nameEn: 'Work'     },
-    finance:   { nameAr: 'الماليات', nameEn: 'Finance'  },
-    lifestyle: { nameAr: 'الصحة',    nameEn: 'Health'   },
     calendar:  { nameAr: 'التقويم',  nameEn: 'Calendar' },
-    focus:     { nameAr: 'التركيز',  nameEn: 'Focus'    },
   };
 
   if (activePage in COMING_SOON) {
