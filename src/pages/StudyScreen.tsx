@@ -27,7 +27,7 @@ function SubjectForm({ onSave, onCancel }: { onSave: (s: Partial<Subject>) => vo
   const [totalLectures, setTotalLectures] = useState("");
 
   return (
-    <div style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
+    <div className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="اسم المادة..."
         style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontSize: 16, color: TEXT, fontFamily: "'Noto Kufi Arabic', sans-serif", marginBottom: 14 }} />
       <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
@@ -138,7 +138,7 @@ export default function StudyScreen({ onBack }: { onBack: () => void }) {
 
             return (
               <div key={s.id} style={{
-                background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 14,
+                className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 14,
                 borderRight: `3px solid ${DIFFICULTY_COLORS[s.difficulty] || ACCENT}`,
                 animation: "fadeIn 0.3s",
               }}>

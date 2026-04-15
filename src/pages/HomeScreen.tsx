@@ -99,14 +99,12 @@ function ModuleCard({
       onClick={() => onClick(mod.id)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      className={`glass-card glass-card-hover ${isLarge ? 'p-8 col-span-2' : 'p-6 col-span-1'}`}
       style={{
-        gridColumn: isLarge ? "span 2" : "span 1",
         position: "relative", cursor: "pointer", overflow: "hidden",
-        borderRadius: 16, padding: isLarge ? "28px 32px" : "22px 20px",
-        background: hovered ? `${mod.color}0A` : "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)",
-        border: `1px solid ${hovered ? mod.color + "40" : "rgba(51, 65, 85, 0.4)"}`,
-        transition: "all 0.35s cubic-bezier(.4,0,.2,1)",
-        transform: hovered ? "translateY(-2px)" : "translateY(0)",
+        background: hovered ? `${mod.color}15` : "rgba(15, 23, 42, 0.4)",
+        border: `1px solid ${hovered ? mod.color + "60" : "rgba(255, 255, 255, 0.05)"}`,
+        boxShadow: hovered ? `0 20px 40px -20px ${mod.color}40` : "none",
         opacity: 0,
         animation: `cardIn 0.5s cubic-bezier(.4,0,.2,1) ${index * 0.05}s forwards`,
       }}
@@ -260,6 +258,13 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
         <div style={{ position: "absolute", bottom: -200, left: -200, width: 400, height: 400, borderRadius: "50%", background: "#A78BFA", opacity: 0.03, filter: "blur(120px)" }} />
       </div>
 
+
+      {/* Premium Background Decor */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+        <div style={{ position: "absolute", top: "10%", left: "5%", width: "40vw", height: "40vw", background: "radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%)", filter: "blur(80px)" }} />
+        <div style={{ position: "absolute", bottom: "10%", right: "5%", width: "50vw", height: "50vw", background: "radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)", filter: "blur(80px)" }} />
+      </div>
+    
       <div style={{ position: "relative", zIndex: 1, maxWidth: 1100, margin: "0 auto", padding: "0 40px" }}>
 
         {/* Top Bar */}
@@ -332,7 +337,7 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 8, marginBottom: 32, animation: "fadeIn 0.8s ease 0.2s both" }}>
           <div>
             <div style={{ fontSize: 14, color: "#3D5A80", marginBottom: 4, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
-              {greeting} يا {loading ? '...' : displayName}
+              {greeting} يا <span className='premium-gradient-text' style={{ fontWeight: 800 }}>{loading ? '...' : displayName}</span>
             </div>
             <div style={{ fontSize: 28, fontWeight: 700, color: "#E8EBF0", fontFamily: "'Noto Kufi Arabic', sans-serif", letterSpacing: "-0.5px" }}>
               اختر وِجهتك اليوم

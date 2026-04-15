@@ -35,9 +35,9 @@ function TransactionForm({ onSave, onCancel }: { onSave: (t: Partial<Transaction
   const today = new Date().toISOString().split("T")[0];
 
   return (
-    <div style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
+    <div className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="الوصف..." style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontSize: 15, color: TEXT, fontFamily: "'Noto Kufi Arabic', sans-serif", marginBottom: 12 }} />
-      <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="المبلغ" style={{ width: "100%", background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", color: TEXT, fontSize: 14, marginBottom: 12 }} />
+      <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="المبلغ" style={{ width: "100%", className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", color: TEXT, fontSize: 14, marginBottom: 12 }} />
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         {(["income", "expense", "sadaqah"] as const).map(t => (
           <button key={t} onClick={() => setType(t)} style={{
@@ -144,7 +144,7 @@ export default function FinanceScreen({ onBack }: { onBack: () => void }) {
             { label: "المصروفات", value: totalExpense, color: RED },
             { label: "الصدقات", value: totalSadaqah, color: "#818CF8" },
           ].map(s => (
-            <div key={s.label} style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, padding: 16, textAlign: "center" }}>
+            <div key={s.label} className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, padding: 16, textAlign: "center" }}>
               <div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>{s.label}</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: s.color, fontFamily: "'JetBrains Mono', monospace" }}>{s.value.toLocaleString()}</div>
             </div>
@@ -157,7 +157,7 @@ export default function FinanceScreen({ onBack }: { onBack: () => void }) {
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               display: "flex", alignItems: "center", gap: 6, padding: "10px 20px",
               borderRadius: 12, cursor: "pointer", fontSize: 14, fontWeight: 600,
-              background: tab === t.id ? ACCENT + "15" : CARD,
+              background: tab === t.id ? ACCENT + "15" :  'transparent',
               border: `1px solid ${tab === t.id ? ACCENT + "40" : BORDER}`,
               color: tab === t.id ? ACCENT : MUTED,
               fontFamily: "'Noto Kufi Arabic', sans-serif", transition: "all 0.2s",
@@ -175,7 +175,7 @@ export default function FinanceScreen({ onBack }: { onBack: () => void }) {
             {showForm && <TransactionForm onSave={addTransaction} onCancel={() => setShowForm(false)} />}
             {loading ? <div style={{ textAlign: "center", padding: 60, color: MUTED }}>جاري التحميل...</div> :
               transactions.map(t => (
-                <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8, animation: "fadeIn 0.3s" }}>
+                <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8, animation: "fadeIn 0.3s" }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: (t.type === "income" ? GREEN : t.type === "sadaqah" ? "#818CF8" : RED) + "15" }}>
                     {t.type === "income" ? <TrendingUp size={16} color={GREEN} /> : <TrendingDown size={16} color={t.type === "sadaqah" ? "#818CF8" : RED} />}
                   </div>
@@ -195,7 +195,7 @@ export default function FinanceScreen({ onBack }: { onBack: () => void }) {
           <div>
             {wishlist.length === 0 ? <div style={{ textAlign: "center", padding: 60, color: MUTED }}>لا توجد أمنيات بعد</div> :
               wishlist.map(w => (
-                <div key={w.id} style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 16, marginBottom: 10 }}>
+                <div key={w.id} className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 16, marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                     <span style={{ fontSize: 15, fontWeight: 600 }}>{w.name}</span>
                     <span style={{ fontSize: 12, color: ACCENT }}>{w.savedAmount}/{w.price}</span>
@@ -213,7 +213,7 @@ export default function FinanceScreen({ onBack }: { onBack: () => void }) {
           <div>
             {commitments.length === 0 ? <div style={{ textAlign: "center", padding: 60, color: MUTED }}>لا توجد التزامات</div> :
               commitments.map(c => (
-                <div key={c.id} style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 16, marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div key={c.id} className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 16, marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 600 }}>{c.name}</div>
                     <div style={{ fontSize: 11, color: MUTED }}>{c.type === "installment" ? "قسط" : "جمعية"} · {c.dueDate}</div>

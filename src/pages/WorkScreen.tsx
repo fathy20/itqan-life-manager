@@ -48,7 +48,7 @@ function TaskForm({ onSave, onCancel }: { onSave: (t: Partial<Task>) => void; on
   const [deadline, setDeadline] = useState("");
 
   return (
-    <div style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 16, animation: "fadeIn 0.3s" }}>
+    <div className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 16, animation: "fadeIn 0.3s" }}>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان المهمة..."
         style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontSize: 16, color: TEXT, fontFamily: "'Noto Kufi Arabic', sans-serif", marginBottom: 16 }} />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
@@ -73,7 +73,7 @@ function TaskForm({ onSave, onCancel }: { onSave: (t: Partial<Task>) => void; on
         ))}
       </div>
       <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)}
-        style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "6px 12px", color: MUTED, fontSize: 12, marginBottom: 12 }} />
+        className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "6px 12px", color: MUTED, fontSize: 12, marginBottom: 12 }} />
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
         <button onClick={onCancel} style={{ padding: "8px 16px", borderRadius: 8, background: "transparent", border: `1px solid ${BORDER}`, color: MUTED, cursor: "pointer", fontSize: 13 }}>إلغاء</button>
         <button onClick={() => { if (title.trim()) onSave({ title, type, focusLevel, deadline: deadline || undefined, completed: false }); }}
@@ -167,7 +167,7 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               display: "flex", alignItems: "center", gap: 6, padding: "10px 20px",
               borderRadius: 12, cursor: "pointer", fontSize: 14, fontWeight: 600,
-              background: tab === t.id ? ACCENT + "15" : CARD,
+              background: tab === t.id ? ACCENT + "15" :  'transparent',
               border: `1px solid ${tab === t.id ? ACCENT + "40" : BORDER}`,
               color: tab === t.id ? ACCENT : MUTED,
               fontFamily: "'Noto Kufi Arabic', sans-serif", transition: "all 0.2s",
@@ -198,7 +198,7 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
                 {pendingTasks.map(t => (
                   <div key={t.id} style={{
                     display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
-                    background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8,
+                    className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8,
                     borderRight: `3px solid ${TYPE_COLORS[t.type] || MUTED}`,
                     animation: "fadeIn 0.3s",
                   }}>
@@ -224,7 +224,7 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
                     {doneTasks.slice(0, 5).map(t => (
                       <div key={t.id} style={{
                         display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
-                        background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 6, opacity: 0.5,
+                        className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 6, opacity: 0.5,
                       }}>
                         <button onClick={() => toggleTask(t)} style={{
                           width: 24, height: 24, borderRadius: 6, background: "#10B98120",
@@ -248,7 +248,7 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
                 <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد مشاريع بعد</div>
               ) : projects.map(p => (
                 <div key={p.id} style={{
-                  background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
+                  className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                     <span style={{ fontSize: 16, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{p.name}</span>
@@ -277,7 +277,7 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
                 <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد كورسات بعد</div>
               ) : courses.map(c => (
                 <div key={c.id} style={{
-                  background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
+                  className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <span style={{ fontSize: 15, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{c.name}</span>

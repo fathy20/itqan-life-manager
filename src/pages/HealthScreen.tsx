@@ -114,7 +114,7 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               padding: "10px 24px", borderRadius: 12, cursor: "pointer", fontSize: 14, fontWeight: 600,
-              background: tab === t.id ? ACCENT + "15" : CARD,
+              background: tab === t.id ? ACCENT + "15" :  'transparent',
               border: `1px solid ${tab === t.id ? ACCENT + "40" : BORDER}`,
               color: tab === t.id ? ACCENT : MUTED,
               fontFamily: "'Noto Kufi Arabic', sans-serif",
@@ -133,7 +133,7 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
                   { icon: Droplets, label: "شرب الماء", key: "waterLiters" as const, color: "#06B6D4", unit: "لتر", max: 5 },
                   { icon: Footprints, label: "الخطوات", key: "steps" as const, color: "#10B981", unit: "خطوة", max: 20000 },
                 ].map(item => (
-                  <div key={item.key} style={{ background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, animation: "fadeIn 0.3s" }}>
+                  <div key={item.key} className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, animation: "fadeIn 0.3s" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: item.color + "15" }}>
                         <item.icon size={18} color={item.color} />
@@ -174,7 +174,7 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
                   return (
                     <div key={h.id} onClick={() => toggleHabit(h)} style={{
                       display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
-                      background: CARD, backdropFilter: "blur(12px)", border: `1px solid ${isDone ? "#10B98140" : BORDER}`,
+                      className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${isDone ? "#10B98140" : BORDER}`,
                       borderRadius: 14, marginBottom: 10, cursor: "pointer",
                       transition: "all 0.2s", animation: "fadeIn 0.3s",
                     }}>
