@@ -66,6 +66,9 @@ function ComingSoon({ nameAr, nameEn, onBack }: { nameAr: string; nameEn: string
   );
 }
 
+import { CommandPalette } from './shared/components/CommandPalette';
+import { GlobalNotifications } from './shared/components/GlobalNotifications';
+
 function AppInner() {
   const { currentUser, state } = useApp();
   const [activePage, setActivePage] = useState('dashboard');
@@ -78,24 +81,31 @@ function AppInner() {
   const logout   = () => signOut(auth);
   const goHome   = () => navigate('dashboard');
 
-  // ── Full-screen pages ─────────────────────────────────────
-  if (activePage === 'dashboard') return <HomeScreen onNavigate={navigate} onLogout={logout} />;
-  if (activePage === 'salah')     return <SalahSystem onBack={goHome} />;
-  if (activePage === 'quran')     return <QuranScreen onBack={goHome} />;
-  if (activePage === 'adhkar')    return <AdhkarSystem onBack={goHome} />;
-  if (activePage === 'fasting')   return <FastingSystem onBack={goHome} />;
-  if (activePage === 'sibaq')     return <SibaqSystem onBack={goHome} />;
-  if (activePage === 'coach')     return <CoachScreen onBack={goHome} />;
-  if (activePage === 'intelligence') return <IntelligenceScreen onBack={goHome} />;
-  if (activePage === 'work')      return <WorkScreen onBack={goHome} />;
-  if (activePage === 'finance')   return <FinanceScreen onBack={goHome} />;
-  if (activePage === 'health' || activePage === 'lifestyle') return <HealthScreen onBack={goHome} />;
-  if (activePage === 'focus')     return <FocusScreen onBack={goHome} />;
-  if (activePage === 'study')     return <StudyScreen onBack={goHome} />;
-  if (activePage === 'calendar')  return <CalendarScreen onBack={goHome} />;
+  const getPage = () => {
+    if (activePage === 'dashboard') return <HomeScreen onNavigate={navigate} onLogout={logout} />;
+    if (activePage === 'salah')     return <SalahSystem onBack={goHome} />;
+    if (activePage === 'quran')     return <QuranScreen onBack={goHome} />;
+    if (activePage === 'adhkar')    return <AdhkarSystem onBack={goHome} />;
+    if (activePage === 'fasting')   return <FastingSystem onBack={goHome} />;
+    if (activePage === 'sibaq')     return <SibaqSystem onBack={goHome} />;
+    if (activePage === 'coach')     return <CoachScreen onBack={goHome} />;
+    if (activePage === 'intelligence') return <IntelligenceScreen onBack={goHome} />;
+    if (activePage === 'work')      return <WorkScreen onBack={goHome} />;
+    if (activePage === 'finance')   return <FinanceScreen onBack={goHome} />;
+    if (activePage === 'health' || activePage === 'lifestyle') return <HealthScreen onBack={goHome} />;
+    if (activePage === 'focus')     return <FocusScreen onBack={goHome} />;
+    if (activePage === 'study')     return <StudyScreen onBack={goHome} />;
+    if (activePage === 'calendar')  return <CalendarScreen onBack={goHome} />;
+    return <HomeScreen onNavigate={navigate} onLogout={logout} />;
+  };
 
-  // Fallback
-  return <HomeScreen onNavigate={navigate} onLogout={logout} />;
+  return (
+    <>
+      <CommandPalette onNavigate={navigate} />
+      <GlobalNotifications />
+      {getPage()}
+    </>
+  );
 }
 
 export default function App() {

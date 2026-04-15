@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, Brain, TrendingUp, BarChart3, PieChart, Activity } from "lucide-react";
+import { ArrowLeft, Brain, TrendingUp, BarChart3, PieChart, Activity, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useCrossModuleInsights, Insight } from "../core/hooks/useCrossModuleInsights";
 
 const BG = "#020617";
 const CARD_BG = "rgba(15, 23, 42, 0.7)";
@@ -7,6 +8,7 @@ const BORDER_COLOR = "rgba(51, 65, 85, 0.4)";
 const ACCENT = "#38BDF8"; // Sky Blue for Intelligence
 
 export default function IntelligenceScreen({ onBack }: { onBack: () => void }) {
+  const { insights, loading } = useCrossModuleInsights();
   
   const SystemLogo = () => (
     <div style={{
@@ -18,6 +20,22 @@ export default function IntelligenceScreen({ onBack }: { onBack: () => void }) {
       <Brain color="white" size={20} />
     </div>
   );
+
+  const getInsightColor = (type: string) => {
+    switch (type) {
+      case 'warning': return '#EF4444';
+      case 'positive': return '#10B981';
+      default: return '#3B82F6';
+    }
+  };
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'warning': return <AlertCircle size={24} color="#EF4444" />;
+      case 'positive': return <CheckCircle2 size={24} color="#10B981" />;
+      default: return <Activity size={24} color="#3B82F6" />;
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: BG, color: "#F1F5F9", paddingBottom: 60 }}>
@@ -38,7 +56,7 @@ export default function IntelligenceScreen({ onBack }: { onBack: () => void }) {
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ textAlign: "right" }}>
-            <h1 style={{ fontSize: "18px", fontWeight: 900, margin: 0, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>تحليل الإتقان</h1>
+            <h1 style={{ fontSize: "18px", fontWeight: 900, margin: 0, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>التحليل الذكي</h1>
             <p style={{ fontSize: "10px", color: ACCENT, letterSpacing: "2px", fontWeight: 700, margin: 0 }}>INTELLIGENCE ENGINE</p>
           </div>
           <SystemLogo />
@@ -50,29 +68,39 @@ export default function IntelligenceScreen({ onBack }: { onBack: () => void }) {
         {/* Productivity Score Hero */}
         <div className="glass-card" style={{ padding: "40px", textAlign: "center", marginBottom: "32px", animation: "fadeInUp 0.6s ease-out", border: `1px solid ${ACCENT}30` }}>
            <p style={{ color: ACCENT, fontSize: "14px", fontWeight: 700, letterSpacing: "2px", marginBottom: "12px" }}>OVERALL PERFORMANCE</p>
-           <h2 style={{ fontSize: "64px", fontWeight: 900, marginBottom: "8px", color: ACCENT }}>85%</h2>
-           <div style={{ fontSize: "18px", color: "#94A3B8", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>إداء ممتاز هذا الأسبوع</div>
+           {loading ? (
+             <h2 style={{ fontSize: "32px", fontWeight: 900, marginBottom: "8px", color: "#94A3B8" }}>جاري تحليل البيانات...</h2>
+           ) : (
+             <>
+               <h2 style={{ fontSize: "64px", fontWeight: 900, marginBottom: "8px", color: ACCENT }}>{insights.some(i => i.type === 'positive') ? '92%' : '75%'}</h2>
+               <div style={{ fontSize: "18px", color: "#94A3B8", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
+                 {insights.length > 0 ? "يوجد بناءات ذكية جاهزة للمراجعة" : "أداء مستقر هذا الأسبوع"}
+               </div>
+             </>
+           )}
         </div>
 
-        {/* Intelligence Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-           {[
-             { label: "تفاعلية العادات", status: "تحسن +12%", icon: Activity, color: "#10B981" },
-             { label: "توزيع الوقت", status: "متوازن", icon: PieChart, color: "#8B5CF6" },
-             { label: "الالتزام المالي", status: "جيد", icon: BarChart3, color: "#F59E0B" },
-             { label: "مستوى التركيز", status: "متصاعد", icon: TrendingUp, color: ACCENT },
-           ].map((item, i) => (
-             <div key={i} className="glass-card" style={{ padding: "24px", display: "flex", alignItems: "center", gap: 20, animation: `fadeInUp 0.5s ease-out ${i * 0.1}s both` }}>
-                <div style={{ width: 44, height: 44, borderRadius: "12px", background: `${item.color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                   <item.icon size={24} color={item.color} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{item.label}</div>
-                  <div style={{ fontSize: 12, color: item.color, fontWeight: 700 }}>{item.status}</div>
-                </div>
-             </div>
-           ))}
-        </div>
+        {/* Real Dynamic Insights Grid */}
+        <h3 style={{ fontSize: 20, marginBottom: 20, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>الاستنتاجات الذكية (Cross-Module)</h3>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 40, color: '#94A3B8' }}>يقوم الذكاء الاصطناعي بربط المهام بالماليات...</div>
+        ) : insights.length === 0 ? (
+          <div className="glass-card" style={{ padding: 40, textAlign: 'center', color: '#94A3B8' }}>لا توجد استنتاجات تحذيرية حالياً. استمر في أدائك الجيد!</div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "16px" }}>
+             {insights.map((insight, i) => (
+               <div key={insight.id} className="glass-card" style={{ padding: "24px", display: "flex", alignItems: "center", gap: 20, animation: `fadeInUp 0.5s ease-out ${i * 0.1}s both`, borderRight: `4px solid ${getInsightColor(insight.type)}` }}>
+                  <div style={{ width: 56, height: 56, borderRadius: "16px", background: `${getInsightColor(insight.type)}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                     {getInsightIcon(insight.type)}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "'Noto Kufi Arabic', sans-serif", color: "#FFF" }}>{insight.title}</div>
+                    <div style={{ fontSize: 14, color: "#94A3B8", marginTop: 4, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{insight.description}</div>
+                  </div>
+               </div>
+             ))}
+          </div>
+        )}
 
       </div>
     </div>
