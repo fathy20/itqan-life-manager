@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { CommandPalette } from './shared/components/CommandPalette';
+import { GlobalNotifications } from './shared/components/GlobalNotifications';
 import { AppProvider, useApp } from './context/AppContext';
 import Onboarding from './pages/Onboarding';
 import AuthScreen from './pages/AuthScreen';
@@ -66,8 +68,6 @@ function ComingSoon({ nameAr, nameEn, onBack }: { nameAr: string; nameEn: string
   );
 }
 
-import { CommandPalette } from './shared/components/CommandPalette';
-import { GlobalNotifications } from './shared/components/GlobalNotifications';
 
 function AppInner() {
   const { currentUser, state } = useApp();
