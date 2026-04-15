@@ -37,7 +37,7 @@ interface ModuleDef {
 }
 
 const MODULES: ModuleDef[] = [
-  { id: "dashboard", nameAr: "الرئيسية",  nameEn: "Dashboard", icon: LayoutDashboard, color: "#08A7E7", desc: "نظرة شاملة على يومك",         size: "large"  },
+  { id: "intelligence", nameAr: "التحليل الذكي",  nameEn: "INTELLIGENCE", icon: LayoutDashboard, color: "#08A7E7", desc: "تحليلات الأداء والتقدم بالذكاء الاصطناعي",         size: "large"  },
   { id: "salah",     nameAr: "الصلاة",    nameEn: "Salah",     icon: Moon,            color: "#A78BFA", desc: "مواقيت وتتبع الصلوات",         size: "normal" },
   { id: "quran",     nameAr: "القرآن",    nameEn: "Quran",     icon: BookOpen,        color: "#34D399", desc: "ختمة · حفظ · مراجعة",           size: "normal" },
   { id: "adhkar",    nameAr: "الأذكار",   nameEn: "Adhkar",    icon: Star,            color: "#FBBF24", desc: "أذكار الصباح والمساء",           size: "normal" },
