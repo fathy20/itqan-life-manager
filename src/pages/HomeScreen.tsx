@@ -23,7 +23,7 @@ import {
 
 // ── Constants ─────────────────────────────────────────────────
 
-const BG = "#000E30";
+const BG = "#020617";
 
 interface ModuleDef {
   id: string;
@@ -102,8 +102,8 @@ function ModuleCard({
         gridColumn: isLarge ? "span 2" : "span 1",
         position: "relative", cursor: "pointer", overflow: "hidden",
         borderRadius: 16, padding: isLarge ? "28px 32px" : "22px 20px",
-        background: hovered ? `${mod.color}0A` : "#0A1628",
-        border: `1px solid ${hovered ? mod.color + "40" : "#0F2847"}`,
+        background: hovered ? `${mod.color}0A` : "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)",
+        border: `1px solid ${hovered ? mod.color + "40" : "rgba(51, 65, 85, 0.4)"}`,
         transition: "all 0.35s cubic-bezier(.4,0,.2,1)",
         transform: hovered ? "translateY(-2px)" : "translateY(0)",
         opacity: 0,
@@ -181,7 +181,7 @@ function QuickStatItem({ icon: Icon, label, value, color }: {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
-      borderRadius: 10, background: "#0A1628", border: "1px solid #0F2847",
+      borderRadius: 10, background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", border: "1px solid #0F2847",
     }}>
       <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: color + "10" }}>
         <Icon size={14} color={color} />
@@ -277,8 +277,8 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 8, padding: "8px 14px",
-              borderRadius: 10, background: searchFocused ? "#0A162880" : "#0A1628",
-              border: `1px solid ${searchFocused ? "#08A7E740" : "#0F2847"}`,
+              borderRadius: 10, background: searchFocused ? "rgba(15, 23, 42, 0.9)" : "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)",
+              border: `1px solid ${searchFocused ? "#08A7E740" : "rgba(51, 65, 85, 0.4)"}`,
               transition: "all 0.3s", width: 220,
             }}>
               <Search size={14} color="#3D5A80" />
@@ -288,23 +288,23 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
                 onBlur={() => setSearchFocused(false)}
                 style={{ background: "none", border: "none", outline: "none", fontSize: 12, color: "#C0C8D8", width: "100%", fontFamily: "inherit" }}
               />
-              <div style={{ padding: "2px 6px", borderRadius: 4, background: "#0F2847", fontSize: 10, color: "#3D5A80", fontFamily: "'JetBrains Mono', monospace" }}>
+              <div style={{ padding: "2px 6px", borderRadius: 4, background: "rgba(51, 65, 85, 0.4)", fontSize: 10, color: "#3D5A80", fontFamily: "'JetBrains Mono', monospace" }}>
                 <Command size={10} style={{ display: "inline", verticalAlign: "middle" }} /> K
               </div>
             </div>
 
-            <div style={{ width: 1, height: 24, background: "#0F2847" }} />
+            <div style={{ width: 1, height: 24, background: "rgba(51, 65, 85, 0.4)" }} />
 
-            <button style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "#0A1628", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}>
+            <button style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}>
               <Bell size={15} color="#3D5A80" />
               <div style={{ position: "absolute", top: 6, right: 6, width: 6, height: 6, borderRadius: "50%", background: "#08A7E7" }} />
             </button>
 
-            <button onClick={onLogout} title="تسجيل الخروج" style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "#0A1628", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <button onClick={onLogout} title="تسجيل الخروج" style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <LogOut size={15} color="#3D5A80" />
             </button>
 
-            <div style={{ width: 1, height: 24, background: "#0F2847" }} />
+            <div style={{ width: 1, height: 24, background: "rgba(51, 65, 85, 0.4)" }} />
 
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ textAlign: "right" }}>
@@ -374,9 +374,9 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34D399" }} />
             <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>All systems active</span>
           </div>
-          <div style={{ width: 1, height: 12, background: "#0F2847" }} />
+          <div style={{ width: 1, height: 12, background: "rgba(51, 65, 85, 0.4)" }} />
           <div style={{ fontSize: 11, color: "#2A4A6A", fontFamily: "'JetBrains Mono', monospace" }}>v2.0 — Itqan Life OS</div>
-          <div style={{ width: 1, height: 12, background: "#0F2847" }} />
+          <div style={{ width: 1, height: 12, background: "rgba(51, 65, 85, 0.4)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#2A4A6A" }}>
             <Shield size={11} color="#2A4A6A" />
             <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>Encrypted</span>
