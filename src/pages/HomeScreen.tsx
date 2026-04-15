@@ -10,11 +10,10 @@ import {
   LayoutDashboard, Moon, BookOpen, Star, GraduationCap, Briefcase,
   Wallet, Users, Heart, Calendar, Timer, Sparkles, ChevronRight,
   Flame, TrendingUp, Shield, Bell, Search, Command,
-  Clock, LogOut, Droplets,
+  Clock, LogOut, Droplets, AlertCircle
 } from "lucide-react";
 import { useHomeNew } from "../hooks/useHomeNew";
 import { useCrossModuleInsights } from "../core/hooks/useCrossModuleInsights";
-import { Sparkles as SparklesIcon, AlertCircle } from "lucide-react";
 import {
   buildQuickStats,
   buildModuleBadges,
@@ -357,7 +356,7 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
         {insights.length > 0 && (
           <div style={{ background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", border: "1px solid rgba(51, 65, 85, 0.4)", borderLeft: "4px solid #08A7E7", borderRadius: 16, padding: 24, marginBottom: 24, display: "flex", gap: 16, alignItems: "flex-start", animation: "slideDown 0.6s ease" }}>
             <div style={{ width: 48, height: 48, borderRadius: 12, background: "#08A7E715", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <SparklesIcon color="#08A7E7" size={24} />
+              <Sparkles color="#08A7E7" size={24} />
             </div>
             <div>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#E8EBF0", margin: "0 0 4px", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>الاستنتاج الذكي (Cross-Module)</h3>
