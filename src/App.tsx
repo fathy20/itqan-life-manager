@@ -15,6 +15,7 @@ import FinanceScreen from './pages/FinanceScreen';
 import HealthScreen from './pages/HealthScreen';
 import FocusScreen from './pages/FocusScreen';
 import StudyScreen from './pages/StudyScreen';
+import CalendarScreen from './pages/CalendarScreen';
 import { signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
 import { ArrowLeft, Clock } from 'lucide-react';
@@ -82,25 +83,16 @@ function AppInner() {
   if (activePage === 'salah')     return <SalahSystem onBack={goHome} />;
   if (activePage === 'quran')     return <QuranScreen onBack={goHome} />;
   if (activePage === 'adhkar')    return <AdhkarSystem onBack={goHome} />;
-  if (activePage === 'fasting')      return <FastingSystem onBack={goHome} />;
-  if (activePage === 'sibaq')        return <SibaqSystem onBack={goHome} />;
-  if (activePage === 'coach')        return <CoachScreen onBack={goHome} />;
+  if (activePage === 'fasting')   return <FastingSystem onBack={goHome} />;
+  if (activePage === 'sibaq')     return <SibaqSystem onBack={goHome} />;
+  if (activePage === 'coach')     return <CoachScreen onBack={goHome} />;
   if (activePage === 'intelligence') return <IntelligenceScreen onBack={goHome} />;
   if (activePage === 'work')      return <WorkScreen onBack={goHome} />;
   if (activePage === 'finance')   return <FinanceScreen onBack={goHome} />;
-  if (activePage === 'lifestyle') return <HealthScreen onBack={goHome} />;
+  if (activePage === 'health' || activePage === 'lifestyle') return <HealthScreen onBack={goHome} />;
   if (activePage === 'focus')     return <FocusScreen onBack={goHome} />;
   if (activePage === 'study')     return <StudyScreen onBack={goHome} />;
-
-  // ── Coming-soon modules ───────────────────────────────────
-  const COMING_SOON: Record<string, { nameAr: string; nameEn: string }> = {
-    calendar:  { nameAr: 'التقويم',  nameEn: 'Calendar' },
-  };
-
-  if (activePage in COMING_SOON) {
-    const { nameAr, nameEn } = COMING_SOON[activePage];
-    return <ComingSoon nameAr={nameAr} nameEn={nameEn} onBack={goHome} />;
-  }
+  if (activePage === 'calendar')  return <CalendarScreen onBack={goHome} />;
 
   // Fallback
   return <HomeScreen onNavigate={navigate} onLogout={logout} />;
