@@ -1,3 +1,14 @@
+// ═══════════════════════════════════════════════════════════════
+//  backend/src/modules/intelligence/intelligence.service.ts
+//  Intelligence Dashboard — aligned with new interfaces
+//  Changes:
+//    - task.status==="completed" → task.completed===true
+//    - task.priority==="high" → task.focusLevel==="deep"
+//    - phoneUsageMinutes → phoneHours (convert to minutes for burnout calc)
+//    - waterIntake → waterLiters
+//    - removed wakeUpTime, phonePickups references
+// ═══════════════════════════════════════════════════════════════
+
 import { db } from "../../lib/firebase-admin";
 
 export interface IntelligenceReport {
@@ -17,7 +28,7 @@ export async function computeIntelligence(uid: string): Promise<IntelligenceRepo
     db.collection("users").doc(uid).collection("subjects").get(),
     db.collection("users").doc(uid).collection("tasks").get(),
     db.collection("users").doc(uid).collection("transactions").orderBy("date", "desc").limit(30).get(),
-    db.collection("users").doc(uid).collection("commitments").where("status", "==", "active").get(),
+    db.collection("users").doc(uid).collection("commitments").get(),
     db.collection("users").doc(uid).collection("habits").get(),
     db.collection("users").doc(uid).collection("lifestyle_logs").orderBy("date", "desc").limit(7).get(),
   ]);
@@ -30,7 +41,8 @@ export async function computeIntelligence(uid: string): Promise<IntelligenceRepo
   const logs = logsSnap.docs.map(d => d.data() as any);
 
   // ── Life Score ────────────────────────────────────────────
-  const completedTasks = tasks.filter((t: any) => t.status === "completed").length;
+  // New interface: task.completed (boolean) instead of task.status
+  const completedTasks = tasks.filter((t: any) => t.completed === true).length;
   const taskScore = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 50;
 
   const studyProgress = subjects.length > 0
@@ -48,14 +60,16 @@ export async function computeIntelligence(uid: string): Promise<IntelligenceRepo
   const lifeScore = Math.round((taskScore * 0.25) + (studyProgress * 0.25) + (financeScore * 0.25) + (habitScore * 0.25));
 
   // ── Burnout Detection ─────────────────────────────────────
-  const pendingTasks = tasks.filter((t: any) => t.status !== "completed").length;
+  // New interface: task.completed (boolean)
+  const pendingTasks = tasks.filter((t: any) => !t.completed).length;
+  // New interface: phoneHours (hours) instead of phoneUsageMinutes
   const avgSleep = logs.length > 0 ? logs.reduce((a: number, l: any) => a + (l.sleepHours || 0), 0) / logs.length : 7;
-  const avgPhone = logs.length > 0 ? logs.reduce((a: number, l: any) => a + (l.phoneUsageMinutes || 0), 0) / logs.length : 120;
+  const avgPhoneHours = logs.length > 0 ? logs.reduce((a: number, l: any) => a + (l.phoneHours || 0), 0) / logs.length : 2;
 
   const burnoutSignals: string[] = [];
   if (pendingTasks > 8) burnoutSignals.push(`${pendingTasks} مهمة متراكمة`);
   if (avgSleep < 6) burnoutSignals.push(`معدل نوم منخفض (${avgSleep.toFixed(1)} ساعة)`);
-  if (avgPhone > 360) burnoutSignals.push(`استخدام هاتف مرتفع (${Math.round(avgPhone / 60)} ساعة/يوم)`);
+  if (avgPhoneHours > 6) burnoutSignals.push(`استخدام هاتف مرتفع (${avgPhoneHours.toFixed(1)} ساعة/يوم)`);
 
   const burnoutLevel = burnoutSignals.length >= 3 ? "high" : burnoutSignals.length >= 1 ? "medium" : "low";
 
@@ -80,11 +94,23 @@ export async function computeIntelligence(uid: string): Promise<IntelligenceRepo
   const financeRiskScore = Math.max(0, 100 - financeAlerts.length * 30);
 
   // ── Habit Consistency ─────────────────────────────────────
-  const habitDetails = habits.map((h: any) => ({
-    name: h.name,
-    rate7d: Math.round(last7.filter(d => (h.completedDates || []).includes(d)).length / 7 * 100),
-    streak: h.streak || 0,
-  }));
+  // New interface: habits have completedDates[] and no streak field
+  const habitDetails = habits.map((h: any) => {
+    const rate7d = Math.round(last7.filter(d => (h.completedDates || []).includes(d)).length / 7 * 100);
+    // Calculate streak from completedDates (no longer stored as field)
+    let streak = 0;
+    const sortedDates = [...(h.completedDates || [])].sort().reverse();
+    for (const dateStr of sortedDates) {
+      const expected = new Date();
+      expected.setDate(expected.getDate() - streak);
+      if (dateStr === expected.toISOString().split("T")[0]) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return { name: h.name, rate7d, streak };
+  });
   const overallHabit = habitDetails.length > 0 ? Math.round(habitDetails.reduce((a: number, h: any) => a + h.rate7d, 0) / habitDetails.length) : 0;
 
   // ── Top Priorities ────────────────────────────────────────
@@ -94,7 +120,8 @@ export async function computeIntelligence(uid: string): Promise<IntelligenceRepo
     priorities.push({ type: "exam", title: `امتحان ${e.name}`, urgency: 100 - e.daysLeft * 5, action: `ذاكر ${e.dailyLoad} محاضرة يومياً` });
   });
 
-  tasks.filter((t: any) => t.priority === "high" && t.status !== "completed").slice(0, 3).forEach((t: any) => {
+  // New interface: focusLevel==="deep" instead of priority==="high"
+  tasks.filter((t: any) => t.focusLevel === "deep" && !t.completed).slice(0, 3).forEach((t: any) => {
     priorities.push({ type: "task", title: t.title, urgency: 70, action: "أنجز هذه المهمة اليوم" });
   });
 

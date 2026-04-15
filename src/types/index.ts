@@ -1,106 +1,75 @@
+// ═══════════════════════════════════════════════════════════════
+//  src/types/index.ts
+//  DEPRECATED — use src/types/new.ts instead
+//  Kept as re-export for backward compatibility during migration
+//  All new screens should import from './new'
+// ═══════════════════════════════════════════════════════════════
+
+// Re-export everything from new types
+export type {
+  Subject,
+  Task,
+  TaskType,
+  FocusLevel,
+  Project,
+  Course,
+  Transaction,
+  TransactionType,
+  WishlistItem,
+  Commitment,
+  Habit,
+  LifestyleLog,
+  FocusSession,
+  // Islamic types
+  PrayerName,
+  PrayerStatus,
+  PrayerLog,
+  DayPrayerLog,
+  PrayerTimes,
+  PrayerStats,
+  QuranSession,
+  KhatmaPlan,
+  SurahHifz,
+  DayAdhkarLog,
+  AdhkarStats,
+  FastingDay,
+  FastingQada,
+  FastingType,
+  DailyScore,
+  SharedScore,
+  RankTitle,
+  // Auth & profile
+  UserProfile,
+  Subscription,
+  Usage,
+  ApiResponse,
+  PaginatedResponse,
+  // AI
+  AIDayPlan,
+  AIWeeklyReview,
+  ChatMessage,
+  // Intelligence
+  DashboardIntelligence,
+  // Halaqah
+  Halaqah,
+  HalaqahChallenge,
+  HalaqahLeaderboardEntry,
+  HalaqahSummary,
+  HalaqahSettings,
+  DuaRequest,
+  // Zakat
+  ZakatAssets,
+  ZakatCalculation,
+} from './new';
+
+// Legacy type aliases for backward compatibility
+/** @deprecated Use TaskType from './new' instead */
 export type Priority = 'low' | 'medium' | 'high';
+/** @deprecated Use Task.completed (boolean) instead */
 export type Status = 'todo' | 'in-progress' | 'completed' | 'on-hold';
 
-export interface Subject {
-  id: string;
-  name: string;
-  examDate: string;
-  examTime?: { start: string; end: string };
-  totalLectures: number;
-  completedLectures: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  color: string;
-  carryover?: boolean;
-  isPending?: boolean;
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  notes?: string;
-  type: 'work' | 'freelance' | 'study' | 'personal';
-  priority: Priority;
-  status: Status;
-  deadline?: string;
-  dueDate?: string;
-  estimatedMinutes?: number;
-  focusType?: 'deep' | 'medium' | 'light';
-  completedAt?: string;
-  projectId?: string;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  client?: string;
-  type: 'work' | 'freelance';
-  priority: Priority;
-  status: 'ongoing' | 'completed' | 'on-hold';
-  color: string;
-}
-
-export interface Course {
-  id: string;
-  name: string;
-  platform: string;
-  totalHours: number;
-  completedHours: number;
-  weeklyGoalHours: number;
-  color: string;
-}
-
-export interface Transaction {
-  id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  date: string;
-  note?: string;
-}
-
-export interface WishlistItem {
-  id: string;
-  name: string;
-  price: number;
-  priority: Priority;
-  category: string;
-  link?: string;
-  savedAmount: number;
-  status: 'pending' | 'bought';
-}
-
-export interface FinancialCommitment {
-  id: string;
-  name: string;
-  amount: number;
-  dueDate: string; // ISO date
-  type: 'installment' | 'jam-eya' | 'subscription' | 'other';
-  totalInstallments?: number;
-  paidInstallments?: number;
-  status: 'active' | 'completed';
-}
-
-export interface Habit {
-  id: string;
-  name: string;
-  icon: string;
-  category: 'spiritual' | 'health' | 'study' | 'work' | 'personal';
-  frequency: 'daily' | 'weekly';
-  streak: number;
-  completedDates: string[]; // ISO strings
-}
-
-export interface LifestyleLog {
-  date: string;
-  sleepHours: number;
-  wakeUpTime: string;
-  phoneUsageMinutes: number;
-  phonePickups: number;
-  waterIntake: number; // glasses
-  steps: number;
-}
-
+// Legacy AppState — kept for screens still using it
+/** @deprecated Migrate to individual hooks (useSalahNew, useQuranNew, etc.) */
 export interface AppState {
   profile: {
     name: string;
@@ -135,21 +104,15 @@ export interface AppState {
     ramadanMode: 'auto' | 'manual';
     eidMode: 'auto' | 'manual';
   };
-  subjects: Subject[];
-  tasks: Task[];
-  projects: Project[];
-  courses: Course[];
-  transactions: Transaction[];
-  wishlist: WishlistItem[];
-  commitments: FinancialCommitment[];
+  subjects: any[];
+  tasks: any[];
+  projects: any[];
+  courses: any[];
+  transactions: any[];
+  wishlist: any[];
+  commitments: any[];
   monthlySalary: number;
-  habits: Habit[];
-  lifestyleLogs: LifestyleLog[];
-  focusSessions: {
-    id: string;
-    startTime: string;
-    durationMinutes: number;
-    type: 'pomodoro' | 'deep-work';
-    taskId?: string;
-  }[];
+  habits: any[];
+  lifestyleLogs: any[];
+  focusSessions: any[];
 }

@@ -1,4 +1,14 @@
+// ═══════════════════════════════════════════════════════════════
+//  backend/src/routes/habits.ts
+//  Habits Routes — aligned with new interface (types/new.ts)
+//  Changes from old:
+//    - removed: category, frequency, streak (streak computed client-side)
+//    - added: nameAr, createdAt, updatedAt
+//    - completedDates remains as string[]
+// ═══════════════════════════════════════════════════════════════
+
 import { Router, Response } from "express";
+import { z } from "zod";
 import { db } from "../lib/firebase-admin";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { ok, created, noContent, error } from "../shared/utils/response";
@@ -6,6 +16,19 @@ import { ok, created, noContent, error } from "../shared/utils/response";
 const router = Router();
 
 const col = (uid: string) => db.collection("users").doc(uid).collection("habits");
+
+// ─── Schemas ─────────────────────────────────────────────────
+
+const createHabitSchema = z.object({
+  name: z.string().min(1).max(200),
+  nameAr: z.string().max(200).optional(),
+  icon: z.string().max(50).optional(),
+  completedDates: z.array(z.string()).default([]),
+});
+
+const updateHabitSchema = createHabitSchema.partial();
+
+// ─── Routes ──────────────────────────────────────────────────
 
 // GET /api/v1/habits
 router.get("/", authMiddleware, async (req: AuthRequest, res: Response) => {
@@ -20,7 +43,13 @@ router.get("/", authMiddleware, async (req: AuthRequest, res: Response) => {
 // POST /api/v1/habits
 router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const data = { ...req.body, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const parsed = createHabitSchema.safeParse(req.body);
+    if (!parsed.success) {
+      error(res, 400, parsed.error.issues[0]?.message ?? "Invalid input", "VALIDATION_ERROR");
+      return;
+    }
+    const now = new Date().toISOString();
+    const data = { ...parsed.data, createdAt: now, updatedAt: now };
     const ref = await col(req.uid!).add(data);
     created(res, { id: ref.id, ...data });
   } catch {
@@ -31,8 +60,13 @@ router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
 // PUT /api/v1/habits/:id
 router.put("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
+    const parsed = updateHabitSchema.safeParse(req.body);
+    if (!parsed.success) {
+      error(res, 400, parsed.error.issues[0]?.message ?? "Invalid input", "VALIDATION_ERROR");
+      return;
+    }
     const ref = col(req.uid!).doc(req.params.id);
-    const data = { ...req.body, updatedAt: new Date().toISOString() };
+    const data = { ...parsed.data, updatedAt: new Date().toISOString() };
     await ref.update(data);
     const updated = await ref.get();
     if (!updated.exists) { error(res, 404, "Habit not found", "NOT_FOUND"); return; }

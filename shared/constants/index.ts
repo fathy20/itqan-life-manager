@@ -1,5 +1,6 @@
 // ============================================================
 // SHARED CONSTANTS - used by Web, Flutter, and Backend
+// Aligned with new interfaces (types/new.ts)
 // ============================================================
 
 export const API_VERSION = 'v1';
@@ -24,6 +25,16 @@ export const ROUTES = {
   HABITS: `${API_BASE}/habits`,
   LIFESTYLE: `${API_BASE}/lifestyle`,
   FOCUS: `${API_BASE}/focus`,
+  // Islamic modules
+  SALAH: `${API_BASE}/salah`,
+  QURAN: `${API_BASE}/quran`,
+  ADHKAR: `${API_BASE}/adhkar`,
+  SCORE: `${API_BASE}/score`,
+  FASTING: `${API_BASE}/fasting`,
+  HALAQAH: `${API_BASE}/halaqah`,
+  AI: `${API_BASE}/ai`,
+  INTELLIGENCE: `${API_BASE}/intelligence`,
+  SUBSCRIPTION: `${API_BASE}/subscription`,
 } as const;
 
 export const COLORS = {
@@ -40,17 +51,29 @@ export const COLORS = {
 
 export const SUBJECT_COLORS = Object.values(COLORS);
 
+// New interface: task.type uses 'job' instead of 'work', adds 'worship','health'
 export const TASK_TYPE_COLORS: Record<string, string> = {
-  work: COLORS.INFO,
+  job: COLORS.INFO,
   freelance: COLORS.SUCCESS,
   study: COLORS.PURPLE,
   personal: COLORS.WARNING,
+  worship: COLORS.CYAN,
+  health: COLORS.PINK,
 };
 
-export const DIFFICULTY_LABELS: Record<string, string> = {
-  easy: 'سهل',
-  medium: 'متوسط',
-  hard: 'صعب',
+// New interface: difficulty is number 1-5
+export const DIFFICULTY_LABELS: Record<number, string> = {
+  1: 'سهل جداً',
+  2: 'سهل',
+  3: 'متوسط',
+  4: 'صعب',
+  5: 'صعب جداً',
+};
+
+export const FOCUS_LEVEL_LABELS: Record<string, string> = {
+  deep: 'تركيز عميق',
+  medium: 'تركيز متوسط',
+  light: 'تركيز خفيف',
 };
 
 export const PRIORITY_LABELS: Record<string, string> = {
@@ -59,6 +82,18 @@ export const PRIORITY_LABELS: Record<string, string> = {
   high: 'عالية',
 };
 
+export const PROJECT_STATUS_LABELS: Record<string, string> = {
+  active: 'نشط',
+  completed: 'مكتمل',
+  paused: 'متوقف',
+};
+
 export const EXPENSE_CATEGORIES = ['طعام', 'مواصلات', 'فواتير', 'ترفيه', 'ملابس', 'صحة', 'تعليم', 'أخرى'];
 export const INCOME_CATEGORIES = ['مرتب', 'فريلانس', 'هدية', 'أخرى'];
+export const SADAQAH_CATEGORIES = ['صدقة', 'زكاة', 'كفارة', 'أخرى'];
 export const WISHLIST_CATEGORIES = ['tech', 'ملابس', 'كتب', 'رياضة', 'سفر', 'أخرى'];
+
+export const COMMITMENT_TYPE_LABELS: Record<string, string> = {
+  installment: 'قسط',
+  savings_group: 'جمعية',
+};

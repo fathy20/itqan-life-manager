@@ -1,15 +1,53 @@
+// ═══════════════════════════════════════════════════════════════
+//  backend/src/routes/finance.ts
+//  Finance Routes — aligned with new interface (types/new.ts)
+//  Changes from old:
+//    - Transaction: added 'title', type now includes 'sadaqah'
+//    - WishlistItem: removed category, link, status
+//    - Commitment: type now 'installment'|'savings_group' (was jam-eya)
+//      removed: totalInstallments, paidInstallments, status
+// ═══════════════════════════════════════════════════════════════
+
 import { Router, Response } from "express";
+import { z } from "zod";
 import { db } from "../lib/firebase-admin";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { ok, created, noContent, error } from "../shared/utils/response";
 
 const router = Router();
 
-// ── Helper: generic CRUD for a sub-collection ─────────────────────────────────
-function crudRoutes(collectionName: string) {
+// ── Schemas ──────────────────────────────────────────────────
+
+const transactionSchema = z.object({
+  title: z.string().min(1).max(300),
+  amount: z.number().positive(),
+  type: z.enum(["income", "expense", "sadaqah"]),
+  category: z.string().min(1).max(100),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+const wishlistSchema = z.object({
+  name: z.string().min(1).max(300),
+  price: z.number().min(0),
+  savedAmount: z.number().min(0).default(0),
+  priority: z.enum(["high", "medium", "low"]).default("medium"),
+});
+
+const commitmentSchema = z.object({
+  name: z.string().min(1).max(300),
+  type: z.enum(["installment", "savings_group"]),
+  amount: z.number().positive(),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+// ── Validated CRUD factory ───────────────────────────────────
+
+function validatedCrudRoutes(collectionName: string, createSchema: z.ZodType<any>) {
   const r = Router();
   const col = (uid: string) => db.collection("users").doc(uid).collection(collectionName);
+  const updateSchema = createSchema instanceof z.ZodObject ? createSchema.partial() : createSchema;
 
+  // GET
   r.get("/", authMiddleware, async (req: AuthRequest, res: Response) => {
     try {
       const snapshot = await col(req.uid!).orderBy("createdAt", "desc").get();
@@ -17,18 +55,31 @@ function crudRoutes(collectionName: string) {
     } catch { error(res, 500, `Failed to fetch ${collectionName}`, "SERVER_ERROR"); }
   });
 
+  // POST
   r.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
     try {
-      const data = { ...req.body, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      const parsed = createSchema.safeParse(req.body);
+      if (!parsed.success) {
+        error(res, 400, parsed.error.issues[0]?.message ?? "Invalid input", "VALIDATION_ERROR");
+        return;
+      }
+      const now = new Date().toISOString();
+      const data = { ...parsed.data, createdAt: now, updatedAt: now };
       const ref = await col(req.uid!).add(data);
       created(res, { id: ref.id, ...data });
     } catch { error(res, 500, `Failed to create ${collectionName} item`, "SERVER_ERROR"); }
   });
 
+  // PUT
   r.put("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
     try {
+      const parsed = updateSchema.safeParse(req.body);
+      if (!parsed.success) {
+        error(res, 400, parsed.error.issues[0]?.message ?? "Invalid input", "VALIDATION_ERROR");
+        return;
+      }
       const ref = col(req.uid!).doc(req.params.id);
-      const data = { ...req.body, updatedAt: new Date().toISOString() };
+      const data = { ...parsed.data, updatedAt: new Date().toISOString() };
       await ref.update(data);
       const updated = await ref.get();
       if (!updated.exists) { error(res, 404, "Not found", "NOT_FOUND"); return; }
@@ -36,6 +87,7 @@ function crudRoutes(collectionName: string) {
     } catch { error(res, 500, `Failed to update ${collectionName} item`, "SERVER_ERROR"); }
   });
 
+  // DELETE
   r.delete("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
     try {
       await col(req.uid!).doc(req.params.id).delete();
@@ -46,16 +98,13 @@ function crudRoutes(collectionName: string) {
   return r;
 }
 
-// ── Transactions ──────────────────────────────────────────────────────────────
-router.use("/transactions", crudRoutes("transactions"));
+// ── Finance sub-routes ───────────────────────────────────────
 
-// ── Wishlist ──────────────────────────────────────────────────────────────────
-router.use("/wishlist", crudRoutes("wishlist"));
+router.use("/transactions", validatedCrudRoutes("transactions", transactionSchema));
+router.use("/wishlist", validatedCrudRoutes("wishlist", wishlistSchema));
+router.use("/commitments", validatedCrudRoutes("commitments", commitmentSchema));
 
-// ── Commitments ───────────────────────────────────────────────────────────────
-router.use("/commitments", crudRoutes("commitments"));
-
-// ── Salary ────────────────────────────────────────────────────────────────────
+// ── Salary ───────────────────────────────────────────────────
 
 const salaryDoc = (uid: string) => db.collection("users").doc(uid).collection("finance_meta").doc("salary");
 
