@@ -15,7 +15,7 @@ const CARD = "rgba(15, 23, 42, 0.7)";
 const BORDER = "rgba(51, 65, 85, 0.4)";
 const TEXT = "#C0C8D8";
 const MUTED = "#3D5A80";
-const ACCENT = "#60A5FA";
+const ACCENT = "#8B5CF6";
 
 const DIFFICULTY_COLORS = ["", "#10B981", "#34D399", "#FBBF24", "#FB923C", "#F87171"];
 const DIFFICULTY_LABELS = ["", "سهل جداً", "سهل", "متوسط", "صعب", "صعب جداً"];
@@ -65,6 +65,18 @@ function SubjectForm({ onSave, onCancel }: { onSave: (s: Partial<Subject>) => vo
 }
 
 export default function StudyScreen({ onBack }: { onBack: () => void }) {
+
+  const SystemLogo = () => (
+    <div style={{
+      width: 40, height: 40, borderRadius: "12px",
+      background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT}80)`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      boxShadow: `0 8px 16px ${ACCENT}30`
+    }}>
+      <GraduationCap color="white" size={20} />
+    </div>
+  );
+
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

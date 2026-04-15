@@ -15,7 +15,7 @@ const CARD = "rgba(15, 23, 42, 0.7)";
 const BORDER = "rgba(51, 65, 85, 0.4)";
 const TEXT = "#C0C8D8";
 const MUTED = "#3D5A80";
-const ACCENT = "#F87171";
+const ACCENT = "#EC4899";
 
 const TABS = [
   { id: "today", label: "اليوم" },
@@ -25,6 +25,18 @@ const TABS = [
 type TabId = typeof TABS[number]["id"];
 
 export default function HealthScreen({ onBack }: { onBack: () => void }) {
+
+  const SystemLogo = () => (
+    <div style={{
+      width: 40, height: 40, borderRadius: "12px",
+      background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT}80)`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      boxShadow: `0 8px 16px ${ACCENT}30`
+    }}>
+      <Heart color="white" size={20} />
+    </div>
+  );
+
   const [tab, setTab] = useState<TabId>("today");
   const [todayLog, setTodayLog] = useState<Partial<LifestyleLog>>({});
   const [habits, setHabits] = useState<Habit[]>([]);

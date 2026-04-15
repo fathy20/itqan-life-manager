@@ -16,7 +16,7 @@ const CARD = "rgba(15, 23, 42, 0.7)";
 const BORDER = "rgba(51, 65, 85, 0.4)";
 const TEXT = "#C0C8D8";
 const MUTED = "#3D5A80";
-const ACCENT = "#FB923C";
+const ACCENT = "#F97316";
 
 const TABS = [
   { id: "tasks", label: "المهام", icon: Target },
@@ -85,6 +85,18 @@ function TaskForm({ onSave, onCancel }: { onSave: (t: Partial<Task>) => void; on
 
 // ── Main Screen ──────────────────────────────────────────────
 export default function WorkScreen({ onBack }: { onBack: () => void }) {
+
+  const SystemLogo = () => (
+    <div style={{
+      width: 40, height: 40, borderRadius: "12px",
+      background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT}80)`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      boxShadow: `0 8px 16px ${ACCENT}30`
+    }}>
+      <Briefcase color="white" size={20} />
+    </div>
+  );
+
   const [tab, setTab] = useState<TabId>("tasks");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -128,15 +140,25 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
       <style>{`@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }`}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
+      
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 24px", borderBottom: `1px solid ${BORDER}`, position: "sticky", top: 0, background: "rgba(2, 6, 23, 0.8)", backdropFilter: "blur(20px)", zIndex: 10 }}>
-        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 8, cursor: "pointer", background: "transparent", border: `1px solid ${BORDER}`, color: MUTED, fontSize: 13, fontFamily: "inherit" }}>
-          <ArrowLeft size={16} /> الرئيسية
+      <header style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "24px 40px", borderBottom: `1px solid ${BORDER}`, background: "rgba(2, 6, 23, 0.8)",
+        backdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 100
+      }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: "#94A3B8", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600 }}>
+          <ArrowLeft size={18} /> الرئيسية
         </button>
-        <div style={{ flex: 1 }} />
-        <Briefcase size={20} color={ACCENT} />
-        <span style={{ fontSize: 18, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>العمل</span>
-      </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ textAlign: "right" }}>
+            <h1 style={{ fontSize: "18px", fontWeight: 900, margin: 0, fontFamily: "'Noto Kufi Arabic', sans-serif", color: "#F1F5F9" }}>نظام العمل</h1>
+            <p style={{ fontSize: "10px", color: ACCENT, letterSpacing: "2px", fontWeight: 700, margin: 0 }}>WORK ENGINE</p>
+          </div>
+          <SystemLogo />
+        </div>
+      </header>
+
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px" }}>
         {/* Tabs */}

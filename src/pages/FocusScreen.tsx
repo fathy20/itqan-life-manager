@@ -29,6 +29,18 @@ const TYPE_OPTS = [
 ] as const;
 
 export default function FocusScreen({ onBack }: { onBack: () => void }) {
+
+  const SystemLogo = () => (
+    <div style={{
+      width: 40, height: 40, borderRadius: "12px",
+      background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT}80)`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      boxShadow: `0 8px 16px ${ACCENT}30`
+    }}>
+      <Timer color="white" size={20} />
+    </div>
+  );
+
   const [sessions, setSessions] = useState<FocusSession[]>([]);
   const [loading, setLoading] = useState(true);
 
