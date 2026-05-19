@@ -155,11 +155,11 @@ export default function FocusScreen({ onBack }: { onBack: () => void }) {
 
         {/* Label */}
         <input value={label} onChange={e => setLabel(e.target.value)} placeholder="وصف اختياري..."
-          style={{ width: 280, className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "10px 16px", color: TEXT, fontSize: 13, fontFamily: "'Noto Kufi Arabic', sans-serif", textAlign: "center", marginBottom: 24 }} />
+          className="glass-card" style={{ width: 280, background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "10px 16px", color: TEXT, fontSize: 13, fontFamily: "'Noto Kufi Arabic', sans-serif", textAlign: "center", marginBottom: 24 }} />
 
         {/* Controls */}
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 40 }}>
-          <button onClick={resetTimer} style={{ width: 48, height: 48, borderRadius: "50%", className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <button onClick={resetTimer} className="glass-card" style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <RotateCcw size={18} color={MUTED} />
           </button>
           <button onClick={toggleTimer} style={{
@@ -171,7 +171,7 @@ export default function FocusScreen({ onBack }: { onBack: () => void }) {
           }}>
             {running ? <Pause size={24} color={RED} /> : <Play size={24} color={typeColor} style={{ marginLeft: 3 }} />}
           </button>
-          <button onClick={() => { if (!running && timeLeft < duration * 60) completeSession(); }} style={{ width: 48, height: 48, borderRadius: "50%", className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <button onClick={() => { if (!running && timeLeft < duration * 60) completeSession(); }} className="glass-card" style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Check size={18} color="#10B981" />
           </button>
         </div>
@@ -193,9 +193,9 @@ export default function FocusScreen({ onBack }: { onBack: () => void }) {
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 13, color: MUTED, marginBottom: 8 }}>جلسات اليوم</div>
             {todaySessions.slice(0, 5).map(s => (
-              <div key={s.id} style={{
+              <div key={s.id} className="glass-card" style={{
                 display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 10, marginBottom: 6,
+                background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 10, marginBottom: 6,
               }}>
                 <Zap size={14} color={TYPE_OPTS.find(t => t.id === s.type)?.color || ACCENT} />
                 <span style={{ flex: 1, fontSize: 13 }}>{s.label || TYPE_OPTS.find(t => t.id === s.type)?.label}</span>

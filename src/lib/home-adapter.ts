@@ -82,7 +82,7 @@ export function buildModuleBadges(
 
 export function buildGreeting(): string {
   const h = new Date().getHours();
-  if (h < 6)  return 'قيام الليل';
+  if (h < 6)  return 'قيام الليل مبارك';
   if (h < 12) return 'صباح الخير';
   if (h < 17) return 'مساء النور';
   return 'مساء الخير';

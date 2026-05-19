@@ -89,7 +89,7 @@ function AppInner() {
     if (activePage === 'fasting')   return <FastingSystem onBack={goHome} />;
     if (activePage === 'sibaq')     return <SibaqSystem onBack={goHome} />;
     if (activePage === 'coach')     return <CoachScreen onBack={goHome} />;
-    if (activePage === 'intelligence') return <IntelligenceScreen onBack={goHome} />;
+    if (activePage === 'intelligence') return <IntelligenceScreen onBack={goHome} onNavigate={navigate} />;
     if (activePage === 'work')      return <WorkScreen onBack={goHome} />;
     if (activePage === 'finance')   return <FinanceScreen onBack={goHome} />;
     if (activePage === 'health' || activePage === 'lifestyle') return <HealthScreen onBack={goHome} />;

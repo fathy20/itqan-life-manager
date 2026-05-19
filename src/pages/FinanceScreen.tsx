@@ -37,7 +37,7 @@ function TransactionForm({ onSave, onCancel }: { onSave: (t: Partial<Transaction
   return (
     <div className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="الوصف..." style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontSize: 15, color: TEXT, fontFamily: "'Noto Kufi Arabic', sans-serif", marginBottom: 12 }} />
-      <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="المبلغ" style={{ width: "100%", className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", color: TEXT, fontSize: 14, marginBottom: 12 }} />
+      <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="المبلغ" className="glass-card" style={{ width: "100%", background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", color: TEXT, fontSize: 14, marginBottom: 12 }} />
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         {(["income", "expense", "sadaqah"] as const).map(t => (
           <button key={t} onClick={() => setType(t)} style={{
@@ -175,7 +175,7 @@ export default function FinanceScreen({ onBack }: { onBack: () => void }) {
             {showForm && <TransactionForm onSave={addTransaction} onCancel={() => setShowForm(false)} />}
             {loading ? <div style={{ textAlign: "center", padding: 60, color: MUTED }}>جاري التحميل...</div> :
               transactions.map(t => (
-                <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8, animation: "fadeIn 0.3s" }}>
+                <div key={t.id} className="glass-card" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8, animation: "fadeIn 0.3s" }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: (t.type === "income" ? GREEN : t.type === "sadaqah" ? "#818CF8" : RED) + "15" }}>
                     {t.type === "income" ? <TrendingUp size={16} color={GREEN} /> : <TrendingDown size={16} color={t.type === "sadaqah" ? "#818CF8" : RED} />}
                   </div>

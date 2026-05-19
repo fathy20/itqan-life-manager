@@ -97,7 +97,7 @@ export default function StudyScreen({ onBack }: { onBack: () => void }) {
 
   const incrementLecture = async (s: Subject) => {
     if (s.completedLectures >= s.totalLectures) return;
-    const res = await subjectsApiNew.update(s.id, { completedLectures: s.completedLectures + 1 });
+    const res = await subjectsApiNew.update(s.id as string, { completedLectures: s.completedLectures + 1 });
     if (res.success) setSubjects(prev => prev.map(x => x.id === s.id ? { ...x, completedLectures: x.completedLectures + 1 } : x));
   };
 
@@ -137,8 +137,8 @@ export default function StudyScreen({ onBack }: { onBack: () => void }) {
             const risk = dailyLoad > 4 ? "danger" : dailyLoad > 2 ? "warning" : "safe";
 
             return (
-              <div key={s.id} style={{
-                className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 14,
+              <div key={s.id} className="glass-card" style={{
+                background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 14,
                 borderRight: `3px solid ${DIFFICULTY_COLORS[s.difficulty] || ACCENT}`,
                 animation: "fadeIn 0.3s",
               }}>
@@ -152,7 +152,7 @@ export default function StudyScreen({ onBack }: { onBack: () => void }) {
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     {risk === "danger" && <AlertTriangle size={18} color="#F87171" />}
-                    <button onClick={() => deleteSubject(s.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#F8717140" }}><Trash2 size={14} /></button>
+                    <button onClick={() => deleteSubject(s.id as string)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#F8717140" }}><Trash2 size={14} /></button>
                   </div>
                 </div>
 

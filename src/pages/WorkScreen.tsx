@@ -196,9 +196,9 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
             ) : (
               <>
                 {pendingTasks.map(t => (
-                  <div key={t.id} style={{
+                  <div key={t.id} className="glass-card" style={{
                     display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
-                    className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8,
+                    background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8,
                     borderRight: `3px solid ${TYPE_COLORS[t.type] || MUTED}`,
                     animation: "fadeIn 0.3s",
                   }}>
@@ -222,9 +222,9 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
                   <div style={{ marginTop: 24 }}>
                     <div style={{ fontSize: 12, color: MUTED, marginBottom: 8 }}>✅ مكتملة ({doneTasks.length})</div>
                     {doneTasks.slice(0, 5).map(t => (
-                      <div key={t.id} style={{
+                      <div key={t.id} className="glass-card" style={{
                         display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
-                        className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 6, opacity: 0.5,
+                        background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 6, opacity: 0.5,
                       }}>
                         <button onClick={() => toggleTask(t)} style={{
                           width: 24, height: 24, borderRadius: 6, background: "#10B98120",
@@ -247,8 +247,8 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
               projects.length === 0 ? (
                 <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد مشاريع بعد</div>
               ) : projects.map(p => (
-                <div key={p.id} style={{
-                  className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
+                <div key={p.id} className="glass-card" style={{
+                  background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                     <span style={{ fontSize: 16, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{p.name}</span>
@@ -276,8 +276,8 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
               courses.length === 0 ? (
                 <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد كورسات بعد</div>
               ) : courses.map(c => (
-                <div key={c.id} style={{
-                  className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
+                <div key={c.id} className="glass-card" style={{
+                  background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <span style={{ fontSize: 15, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{c.name}</span>

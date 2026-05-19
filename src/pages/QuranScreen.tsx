@@ -7,6 +7,8 @@ const BORDER_COLOR = "rgba(51, 65, 85, 0.4)";
 const ACCENT = "#10B981"; // Emerald for Quran
 
 export default function QuranScreen({ onBack }: { onBack: () => void }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeAction, setActiveAction] = useState<string | null>(null);
   
   const SystemLogo = () => (
     <div style={{
@@ -54,10 +56,17 @@ export default function QuranScreen({ onBack }: { onBack: () => void }) {
               <h2 style={{ fontSize: "32px", fontWeight: 900, marginBottom: "4px", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>سورة البقرة</h2>
               <p style={{ color: "#94A3B8" }}>الآية رقم 154 · الجزء الثاني</p>
            </div>
-           <button style={{ width: 64, height: 64, borderRadius: "50%", background: ACCENT, color: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 10px 25px ${ACCENT}40` }}>
-              <Play size={24} fill="white" />
+           <button
+             onClick={() => setIsPlaying(p => !p)}
+             style={{ width: 64, height: 64, borderRadius: "50%", background: ACCENT, color: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 10px 25px ${ACCENT}40` }}>
+              <Play size={24} fill="white" style={{ opacity: isPlaying ? 0.6 : 1 }} />
            </button>
         </div>
+        {isPlaying && (
+          <div style={{ marginBottom: 24, padding: "12px 20px", borderRadius: 12, background: `${ACCENT}15`, border: `1px solid ${ACCENT}40`, color: ACCENT, textAlign: "center", fontSize: 13, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
+            ▶ جاري التشغيل — سورة البقرة
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
@@ -66,12 +75,27 @@ export default function QuranScreen({ onBack }: { onBack: () => void }) {
              { label: "علاماتي", icon: Bookmark, color: "#F59E0B" },
              { label: "البحث في الآيات", icon: Search, color: "#8B5CF6" },
            ].map((item, i) => (
-             <div key={i} className="glass-card" style={{ padding: "24px", textAlign: "center", cursor: "pointer", animation: `fadeInUp 0.5s ease-out ${i * 0.1}s both` }}>
+             <div
+               key={i}
+               onClick={() => setActiveAction(item.label)}
+               className="glass-card"
+               style={{
+                 padding: "24px", textAlign: "center", cursor: "pointer",
+                 animation: `fadeInUp 0.5s ease-out ${i * 0.1}s both`,
+                 border: activeAction === item.label ? `2px solid ${item.color}` : `1px solid ${BORDER_COLOR}`,
+                 transition: "all 0.2s",
+               }}>
                 <div style={{ color: item.color, marginBottom: "12px", display: "flex", justifyContent: "center" }}><item.icon size={28} /></div>
                 <span style={{ fontSize: "15px", fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{item.label}</span>
              </div>
            ))}
         </div>
+
+        {activeAction && (
+          <div className="glass-card" style={{ padding: 24, textAlign: "center", color: "#94A3B8", fontSize: 13, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
+            تم فتح: <span style={{ color: ACCENT, fontWeight: 700 }}>{activeAction}</span>
+          </div>
+        )}
 
       </div>
     </div>

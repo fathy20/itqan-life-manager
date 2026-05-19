@@ -6,8 +6,21 @@ const CARD_BG = "rgba(15, 23, 42, 0.7)";
 const BORDER_COLOR = "rgba(51, 65, 85, 0.4)";
 const ACCENT = "#A855F7"; // Purple for Calendar
 
+const MONTHS_AR = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+
 export default function CalendarScreen({ onBack }: { onBack: () => void }) {
-  
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth()); // 0-indexed
+  const [selectedDate, setSelectedDate] = useState<number>(now.getDate());
+
+  const prevMonth = () => {
+    if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1);
+  };
+
   const SystemLogo = () => (
     <div style={{
       width: 40, height: 40, borderRadius: "12px",
@@ -20,7 +33,8 @@ export default function CalendarScreen({ onBack }: { onBack: () => void }) {
   );
 
   const DAYS = ["ح", "ن", "ث", "ر", "خ", "ج", "س"];
-  const dates = Array.from({ length: 30 }, (_, i) => i + 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const dates = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   return (
     <div style={{ minHeight: "100vh", background: BG, color: "#F1F5F9", paddingBottom: 60 }}>
@@ -53,21 +67,25 @@ export default function CalendarScreen({ onBack }: { onBack: () => void }) {
         {/* Calendar Card */}
         <div className="glass-card" style={{ padding: "32px", animation: "fadeInUp 0.6s ease-out" }}>
            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
-              <ChevronLeft size={24} style={{ cursor: "pointer", color: "#64748B" }} />
-              <h2 style={{ fontSize: "20px", fontWeight: 900, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>أبريل 2026</h2>
-              <ChevronRight size={24} style={{ cursor: "pointer", color: "#64748B" }} />
+              <ChevronLeft size={24} onClick={prevMonth} style={{ cursor: "pointer", color: "#64748B" }} />
+              <h2 style={{ fontSize: "20px", fontWeight: 900, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{MONTHS_AR[month]} {year}</h2>
+              <ChevronRight size={24} onClick={nextMonth} style={{ cursor: "pointer", color: "#64748B" }} />
            </div>
 
            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "10px", textAlign: "center" }}>
               {DAYS.map(d => <div key={d} style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 12 }}>{d}</div>)}
               {dates.map(date => (
-                <div key={date} style={{ 
-                  height: 44, borderRadius: "12px", 
-                  background: date === 15 ? ACCENT : "rgba(255,255,255,0.02)", 
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 16, fontWeight: date === 15 ? 900 : 600,
-                  cursor: "pointer", border: date === 15 ? "none" : `1px solid ${BORDER_COLOR}10`
-                }}>
+                <div
+                  key={date}
+                  onClick={() => setSelectedDate(date)}
+                  style={{
+                    height: 44, borderRadius: "12px",
+                    background: date === selectedDate ? ACCENT : "rgba(255,255,255,0.02)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 16, fontWeight: date === selectedDate ? 900 : 600,
+                    cursor: "pointer", border: date === selectedDate ? "none" : `1px solid ${BORDER_COLOR}10`,
+                    transition: "background 0.15s",
+                  }}>
                   {date}
                 </div>
               ))}

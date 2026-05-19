@@ -172,9 +172,9 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
                   const isDone = (h.completedDates || []).includes(today);
                   const streak = getStreak(h.completedDates || []);
                   return (
-                    <div key={h.id} onClick={() => toggleHabit(h)} style={{
+                    <div key={h.id} className="glass-card" onClick={() => toggleHabit(h)} style={{
                       display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
-                      className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)" , backdropFilter: "blur(12px)", border: `1px solid ${isDone ? "#10B98140" : BORDER}`,
+                      background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${isDone ? "#10B98140" : BORDER}`,
                       borderRadius: 14, marginBottom: 10, cursor: "pointer",
                       transition: "all 0.2s", animation: "fadeIn 0.3s",
                     }}>

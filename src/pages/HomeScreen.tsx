@@ -13,6 +13,7 @@ import {
   Clock, LogOut, Droplets, AlertCircle
 } from "lucide-react";
 import { useHomeNew } from "../hooks/useHomeNew";
+import { useAppStore } from "../core/store/useAppStore";
 import { useCrossModuleInsights } from "../core/hooks/useCrossModuleInsights";
 import {
   buildQuickStats,
@@ -199,8 +200,13 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
   const { profile, todayScore, shared, prayerLog, times, loading, timesLoading, error, refetch } = useHomeNew();
 
   const [searchFocused, setSearchFocused] = useState(false);
-  const { insights } = useCrossModuleInsights();
+  const { insights, dailyBrief } = useCrossModuleInsights();
   const [time, setTime] = useState(new Date());
+  // open command palette via Cmd+K (handled in CommandPalette itself)
+  const notifications = useAppStore(s => s.notifications);
+  const markNotificationRead = useAppStore(s => s.markNotificationRead);
+  const unreadCount = notifications.filter(n => !n.read).length;
+  const [showNotifs, setShowNotifs] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setTime(new Date()), 60_000);
@@ -302,10 +308,26 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
 
             <div style={{ width: 1, height: 24, background: "rgba(51, 65, 85, 0.4)" }} />
 
-            <button style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}>
-              <Bell size={15} color="#3D5A80" />
-              <div style={{ position: "absolute", top: 6, right: 6, width: 6, height: 6, borderRadius: "50%", background: "#08A7E7" }} />
-            </button>
+            <div style={{ position: "relative" }}>
+              <button onClick={() => setShowNotifs(v => !v)} title="الإشعارات" style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}>
+                <Bell size={15} color="#3D5A80" />
+                {unreadCount > 0 && (
+                  <div style={{ position: "absolute", top: 6, right: 6, width: 6, height: 6, borderRadius: "50%", background: "#08A7E7" }} />
+                )}
+              </button>
+              {showNotifs && (
+                <div style={{ position: "absolute", top: 44, right: 0, width: 320, maxHeight: 400, overflowY: "auto", background: "rgba(15, 23, 42, 0.97)", backdropFilter: "blur(16px)", border: "1px solid #0F2847", borderRadius: 12, padding: 8, zIndex: 1000, boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: 24, textAlign: "center", color: "#3D5A80", fontSize: 13, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد إشعارات</div>
+                  ) : notifications.map(n => (
+                    <div key={n.id} onClick={() => markNotificationRead(n.id)} style={{ padding: 12, borderRadius: 8, cursor: "pointer", marginBottom: 4, background: n.read ? "transparent" : "rgba(8, 167, 231, 0.08)", border: "1px solid " + (n.read ? "transparent" : "rgba(8, 167, 231, 0.2)") }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#C0C8D8", fontFamily: "'Noto Kufi Arabic', sans-serif", marginBottom: 4 }}>{n.title}</div>
+                      <div style={{ fontSize: 11, color: "#94A3B8", fontFamily: "'Noto Kufi Arabic', sans-serif", lineHeight: 1.5 }}>{n.message}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <button onClick={onLogout} title="تسجيل الخروج" style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <LogOut size={15} color="#3D5A80" />
@@ -358,18 +380,54 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
 
         
         {/* Daily Brief */}
-        {insights.length > 0 && (
-          <div style={{ background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", border: "1px solid rgba(51, 65, 85, 0.4)", borderLeft: "4px solid #08A7E7", borderRadius: 16, padding: 24, marginBottom: 24, display: "flex", gap: 16, alignItems: "flex-start", animation: "slideDown 0.6s ease" }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: "#08A7E715", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Sparkles color="#08A7E7" size={24} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#E8EBF0", margin: "0 0 4px", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>الاستنتاج الذكي (Cross-Module)</h3>
-              <div style={{ fontSize: 14, color: "#94A3B8", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
-                {insights[0].description} 
-                {insights[0].actionable && <span onClick={() => handleModuleClick(insights[0].actionPath || "intelligence")} style={{ color: "#08A7E7", fontWeight: 700, cursor: "pointer", marginRight: 8, textDecoration: "underline" }}>اتخذ إجراء</span>}
+        {dailyBrief && (dailyBrief.insights.length > 0 || dailyBrief.todayTaskCount > 0) && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 20, marginBottom: 32, animation: "slideDown 0.6s ease 0.1s both" }}>
+            
+            {/* AI Insights Card */}
+            {dailyBrief.insights.length > 0 && (
+              <div className="glass-card" style={{ padding: 24, display: "flex", gap: 16, alignItems: "flex-start", background: "rgba(15, 23, 42, 0.8)", borderLeft: "4px solid #08A7E7" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: "#08A7E715", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Sparkles color="#08A7E7" size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: "#E8EBF0", margin: "0 0 6px", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>محرك الذكاء</h3>
+                  <div style={{ fontSize: 14, color: "#94A3B8", fontFamily: "'Noto Kufi Arabic', sans-serif", lineHeight: 1.6, marginBottom: 12 }}>
+                    {dailyBrief.insights[0].description}
+                  </div>
+                  {dailyBrief.insights[0].actionable && (
+                    <button onClick={() => handleModuleClick(dailyBrief.insights[0].actionPath || "intelligence")} style={{ background: "transparent", border: "none", color: "#08A7E7", fontWeight: 700, cursor: "pointer", fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {dailyBrief.insights[0].actionLabel || 'اتخذ إجراء'} <ChevronRight size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Daily Work Summary Card */}
+            {dailyBrief.workSummary && (
+              <div className="glass-card" style={{ padding: 24, display: "flex", flexDirection: "column", justifyContent: "center", background: "rgba(15, 23, 42, 0.8)" }}>
+                <h3 style={{ fontSize: 14, color: "#94A3B8", margin: "0 0 16px", fontFamily: "'Noto Kufi Arabic', sans-serif", display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Briefcase size={16} /> مهام اليوم
+                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                  <div>
+                    <div style={{ fontSize: 32, fontWeight: 800, color: "#F1F5F9", lineHeight: 1 }}>
+                      {dailyBrief.todayDoneCount}<span style={{ fontSize: 16, color: "#3D5A80" }}>/{dailyBrief.todayTaskCount + dailyBrief.todayDoneCount}</span>
+                    </div>
+                  </div>
+                  {dailyBrief.urgentCount > 0 && (
+                    <div style={{ background: '#EF444415', color: '#EF4444', padding: '4px 10px', borderRadius: 8, fontSize: 12, fontWeight: 'bold' }}>
+                      {dailyBrief.urgentCount} متأخرة
+                    </div>
+                  )}
+                </div>
+                {dailyBrief.todayTaskCount + dailyBrief.todayDoneCount > 0 && (
+                  <div style={{ height: 4, background: 'rgba(51, 65, 85, 0.4)', borderRadius: 2, marginTop: 16, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${(dailyBrief.todayDoneCount / (dailyBrief.todayTaskCount + dailyBrief.todayDoneCount)) * 100}%`, background: '#08A7E7', borderRadius: 2 }} />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

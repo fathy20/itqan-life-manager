@@ -7,6 +7,8 @@ const BORDER_COLOR = "rgba(51, 65, 85, 0.4)";
 const ACCENT = "#3B82F6"; // Blue for Fasting
 
 export default function FastingSystem({ onBack }: { onBack: () => void }) {
+  const [loggedToday, setLoggedToday] = useState(false);
+  const [days, setDays] = useState(12);
   
   const SystemLogo = () => (
     <div style={{
@@ -50,7 +52,7 @@ export default function FastingSystem({ onBack }: { onBack: () => void }) {
         {/* Fasting Stats Grid */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "32px" }}>
            {[
-             { label: "أيام الصيام", value: "12", icon: Calendar, color: "#10B981" },
+             { label: "أيام الصيام", value: String(days), icon: Calendar, color: "#10B981" },
              { label: "أيام القضاء", value: "0", icon: Zap, color: "#F59E0B" },
            ].map((item, i) => (
              <div key={i} className="glass-card" style={{ padding: "32px", textAlign: "center", animation: "fadeInUp 0.6s ease-out" }}>
@@ -62,11 +64,21 @@ export default function FastingSystem({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Action Button */}
-        <button style={{
-          width: "100%", padding: "20px", borderRadius: "20px", background: ACCENT, color: "white",
-          border: "none", cursor: "pointer", fontSize: "18px", fontWeight: 900, fontFamily: "'Noto Kufi Arabic', sans-serif",
-          boxShadow: `0 10px 30px ${ACCENT}40`
-        }}>تسجيل صيام اليوم</button>
+        <button
+          onClick={() => {
+            if (loggedToday) return;
+            setLoggedToday(true);
+            setDays(d => d + 1);
+          }}
+          disabled={loggedToday}
+          style={{
+            width: "100%", padding: "20px", borderRadius: "20px",
+            background: loggedToday ? "#10B981" : ACCENT, color: "white",
+            border: "none", cursor: loggedToday ? "default" : "pointer",
+            fontSize: "18px", fontWeight: 900, fontFamily: "'Noto Kufi Arabic', sans-serif",
+            boxShadow: `0 10px 30px ${ACCENT}40`,
+            opacity: loggedToday ? 0.85 : 1,
+        }}>{loggedToday ? "✓ تم تسجيل صيام اليوم" : "تسجيل صيام اليوم"}</button>
 
       </div>
     </div>

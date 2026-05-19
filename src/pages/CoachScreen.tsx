@@ -12,6 +12,19 @@ export default function CoachScreen({ onBack }: { onBack: () => void }) {
   ]);
   const [input, setInput] = useState("");
 
+  const sendMessage = () => {
+    const text = input.trim();
+    if (!text) return;
+    setMessages(prev => [...prev, { role: "user", content: text }]);
+    setInput("");
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        role: "bot",
+        content: "تم استلام رسالتك ✨ سأعالجها وأرد عليك خلال لحظات بإذن الله."
+      }]);
+    }, 600);
+  };
+
   const SystemLogo = () => (
     <div style={{
       width: 40, height: 40, borderRadius: "12px",
@@ -74,11 +87,14 @@ export default function CoachScreen({ onBack }: { onBack: () => void }) {
            maxWidth: "800px", margin: "0 auto", display: "flex", gap: 12, 
            background: "rgba(0,0,0,0.2)", padding: "8px", borderRadius: "20px", border: `1px solid ${BORDER_COLOR}`
          }}>
-            <input 
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
               style={{ flex: 1, background: "none", border: "none", outline: "none", color: "white", padding: "0 20px", fontSize: 16, fontFamily: "'Noto Kufi Arabic', sans-serif" }} 
               placeholder="اكتب استفسارك هنا..." 
             />
-            <button style={{ width: 44, height: 44, borderRadius: "16px", background: ACCENT, color: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <button onClick={sendMessage} style={{ width: 44, height: 44, borderRadius: "16px", background: ACCENT, color: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Send size={20} />
             </button>
          </div>

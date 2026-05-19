@@ -7,6 +7,7 @@ const BORDER_COLOR = "rgba(51, 65, 85, 0.4)";
 const ACCENT = "#F59E0B"; // Amber for Adhkar
 
 export default function AdhkarSystem({ onBack }: { onBack: () => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
   
   const SystemLogo = () => (
     <div style={{
@@ -55,12 +56,30 @@ export default function AdhkarSystem({ onBack }: { onBack: () => void }) {
              { label: "أذكار النوم", icon: Wind, color: "#3B82F6" },
              { label: "أدعية منوعة", icon: MessageSquare, color: "#10B981" },
            ].map((item, i) => (
-             <div key={i} className="glass-card" style={{ padding: "32px", textAlign: "center", cursor: "pointer", animation: `fadeInUp 0.5s ease-out ${i * 0.1}s both` }}>
+             <div
+               key={i}
+               onClick={() => setSelected(item.label)}
+               className="glass-card"
+               style={{
+                 padding: "32px", textAlign: "center", cursor: "pointer",
+                 animation: `fadeInUp 0.5s ease-out ${i * 0.1}s both`,
+                 border: selected === item.label ? `2px solid ${item.color}` : `1px solid ${BORDER_COLOR}`,
+                 transition: "all 0.2s",
+               }}>
                 <div style={{ color: item.color, marginBottom: "16px", display: "flex", justifyContent: "center" }}><item.icon size={40} /></div>
                 <h3 style={{ fontSize: "20px", fontWeight: 900, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{item.label}</h3>
              </div>
            ))}
         </div>
+
+        {selected && (
+          <div className="glass-card" style={{ marginTop: 24, padding: 32, textAlign: "center", animation: "fadeInUp 0.4s ease-out" }}>
+            <p style={{ fontSize: 14, color: ACCENT, fontWeight: 700, marginBottom: 8 }}>تم اختيار</p>
+            <h3 style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Noto Kufi Arabic', sans-serif", marginBottom: 16 }}>{selected}</h3>
+            <p style={{ color: "#94A3B8", fontSize: 13, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>سيتم عرض الأذكار قريباً بإذن الله</p>
+            <button onClick={() => setSelected(null)} style={{ marginTop: 16, padding: "8px 20px", borderRadius: 10, background: "transparent", border: `1px solid ${BORDER_COLOR}`, color: "#94A3B8", cursor: "pointer", fontSize: 13 }}>إغلاق</button>
+          </div>
+        )}
 
       </div>
     </div>
