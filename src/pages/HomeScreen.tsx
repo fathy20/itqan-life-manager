@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Moon, BookOpen, Star, GraduationCap, Briefcase,
   Wallet, Users, Heart, Calendar, Timer, Sparkles, ChevronRight,
   Flame, TrendingUp, Shield, Bell, Search, Command,
-  Clock, LogOut, Droplets, AlertCircle
+  Clock, LogOut, Droplets
 } from "lucide-react";
 import { useHomeNew } from "../hooks/useHomeNew";
 import { useAppStore } from "../core/store/useAppStore";
@@ -25,8 +25,6 @@ import {
 
 // ── Constants ─────────────────────────────────────────────────
 
-const BG = "#020617";
-
 interface ModuleDef {
   id: string;
   nameAr: string;
@@ -39,19 +37,19 @@ interface ModuleDef {
 }
 
 const MODULES: ModuleDef[] = [
-  { id: "intelligence", nameAr: "التحليل الذكي",  nameEn: "INTELLIGENCE", icon: LayoutDashboard, color: "#08A7E7", desc: "تحليلات الأداء والتقدم بالذكاء الاصطناعي",         size: "large"  },
-  { id: "salah",     nameAr: "الصلاة",    nameEn: "Salah",     icon: Moon,            color: "#A78BFA", desc: "مواقيت وتتبع الصلوات",         size: "normal" },
-  { id: "quran",     nameAr: "القرآن",    nameEn: "Quran",     icon: BookOpen,        color: "#34D399", desc: "ختمة · حفظ · مراجعة",           size: "normal" },
-  { id: "adhkar",    nameAr: "الأذكار",   nameEn: "Adhkar",    icon: Star,            color: "#FBBF24", desc: "أذكار الصباح والمساء",           size: "normal" },
-  { id: "fasting",   nameAr: "الصيام",    nameEn: "Fasting",   icon: Droplets,        color: "#818CF8", desc: "الصيام · القضاء · النوافل",       size: "normal" },
-  { id: "sibaq",     nameAr: "السباق",    nameEn: "Sibaq",     icon: Users,           color: "#F472B6", desc: "تنافس مع أصحابك",               size: "normal" },
-  { id: "study",     nameAr: "الدراسة",   nameEn: "Study",     icon: GraduationCap,   color: "#60A5FA", desc: "المواد والامتحانات",             size: "normal" },
-  { id: "work",      nameAr: "العمل",     nameEn: "Work",      icon: Briefcase,       color: "#FB923C", desc: "مهام · مشاريع · كورسات",         size: "normal" },
-  { id: "finance",   nameAr: "الماليات",  nameEn: "Finance",   icon: Wallet,          color: "#4ADE80", desc: "ميزانية · زكاة · صدقات",         size: "normal", locked: true },
-  { id: "lifestyle", nameAr: "الصحة",     nameEn: "Health",    icon: Heart,           color: "#F87171", desc: "عادات · نوم · تمارين · أكل",     size: "normal" },
-  { id: "calendar",  nameAr: "التقويم",   nameEn: "Calendar",  icon: Calendar,        color: "#818CF8", desc: "هجري + ميلادي",                  size: "normal" },
-  { id: "focus",     nameAr: "التركيز",   nameEn: "Focus",     icon: Timer,           color: "#FB923C", desc: "مؤقت البومودورو",                size: "normal" },
-  { id: "coach",     nameAr: "المدرب",    nameEn: "AI Coach",  icon: Sparkles,        color: "#08A7E7", desc: "مدربك الذكي بالـ AI",            size: "normal" },
+  { id: "intelligence", nameAr: "التحليل الذكي",  nameEn: "INTELLIGENCE", icon: LayoutDashboard, color: "#0ea5e9", desc: "تحليلات الأداء والتقدم بالذكاء الاصطناعي",         size: "large"  },
+  { id: "salah",     nameAr: "الصلاة",    nameEn: "Salah",     icon: Moon,            color: "#8b5cf6", desc: "مواقيت وتتبع الصلوات",         size: "normal" },
+  { id: "quran",     nameAr: "القرآن",    nameEn: "Quran",     icon: BookOpen,        color: "#10b981", desc: "ختمة · حفظ · مراجعة",           size: "normal" },
+  { id: "adhkar",    nameAr: "الأذكار",   nameEn: "Adhkar",    icon: Star,            color: "#f59e0b", desc: "أذكار الصباح والمساء",           size: "normal" },
+  { id: "fasting",   nameAr: "الصيام",    nameEn: "Fasting",   icon: Droplets,        color: "#6366f1", desc: "الصيام · القضاء · النوافل",       size: "normal" },
+  { id: "sibaq",     nameAr: "السباق",    nameEn: "Sibaq",     icon: Users,           color: "#ec4899", desc: "تنافس مع أصحابك",               size: "normal" },
+  { id: "study",     nameAr: "الدراسة",   nameEn: "Study",     icon: GraduationCap,   color: "#3b82f6", desc: "المواد والامتحانات",             size: "normal" },
+  { id: "work",      nameAr: "العمل",     nameEn: "Work",      icon: Briefcase,       color: "#f97316", desc: "مهام · مشاريع · كورسات",         size: "normal" },
+  { id: "finance",   nameAr: "الماليات",  nameEn: "Finance",   icon: Wallet,          color: "#22c55e", desc: "ميزانية · زكاة · صدقات",         size: "normal", locked: true },
+  { id: "lifestyle", nameAr: "الصحة",     nameEn: "Health",    icon: Heart,           color: "#ef4444", desc: "عادات · نوم · تمارين · أكل",     size: "normal" },
+  { id: "calendar",  nameAr: "التقويم",   nameEn: "Calendar",  icon: Calendar,        color: "#6366f1", desc: "هجري + ميلادي",                  size: "normal" },
+  { id: "focus",     nameAr: "التركيز",   nameEn: "Focus",     icon: Timer,           color: "#f97316", desc: "مؤقت البومودورو",                size: "normal" },
+  { id: "coach",     nameAr: "المدرب",    nameEn: "AI Coach",  icon: Sparkles,        color: "#0ea5e9", desc: "مدربك الذكي بالـ AI",            size: "normal" },
 ];
 
 // ── Sub-components ────────────────────────────────────────────
@@ -59,27 +57,23 @@ const MODULES: ModuleDef[] = [
 function ItqanLogo({ size = 40 }: { size?: number }) {
   const petals = 12;
   return (
-    <svg width={size} height={size} viewBox="0 0 80 80">
+    <svg width={size} height={size} viewBox="0 0 80 80" className="animate-pulse-soft">
       <defs>
         <linearGradient id="petalGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#08A7E7" />
-          <stop offset="100%" stopColor="#065A8C" />
+          <stop offset="0%" stopColor="#0ea5e9" />
+          <stop offset="100%" stopColor="#2563eb" />
         </linearGradient>
         <radialGradient id="centerGlow">
-          <stop offset="0%" stopColor="#08A7E7" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#08A7E7" stopOpacity="0" />
+          <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0" />
         </radialGradient>
       </defs>
       {Array.from({ length: petals }).map((_, i) => (
         <ellipse key={i} cx="40" cy="24" rx="6" ry="16" fill="url(#petalGrad)" opacity="0.7"
           transform={`rotate(${(i * 360) / petals} 40 40)`} />
       ))}
-      {Array.from({ length: 8 }).map((_, i) => {
-        const rad = (i * Math.PI * 2) / 8;
-        return <circle key={`d-${i}`} cx={40 + Math.cos(rad) * 32} cy={40 + Math.sin(rad) * 32} r="2.5" fill="#08A7E7" opacity="0.5" />;
-      })}
       <circle cx="40" cy="40" r="12" fill="url(#centerGlow)" />
-      <circle cx="40" cy="40" r="4" fill="#08A7E7" />
+      <circle cx="40" cy="40" r="4" fill="#38bdf8" />
     </svg>
   );
 }
@@ -92,83 +86,63 @@ function ModuleCard({
   badge: string | null;
   onClick: (id: string) => void;
 }) {
-  const [hovered, setHovered] = useState(false);
   const isLarge = mod.size === "large";
 
   return (
     <div
       onClick={() => onClick(mod.id)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={`glass-card glass-card-hover ${isLarge ? 'p-8 col-span-2' : 'p-6 col-span-1'}`}
-      style={{
-        position: "relative", cursor: "pointer", overflow: "hidden",
-        background: hovered ? `${mod.color}15` : "rgba(15, 23, 42, 0.4)",
-        border: `1px solid ${hovered ? mod.color + "60" : "rgba(255, 255, 255, 0.05)"}`,
-        boxShadow: hovered ? `0 20px 40px -20px ${mod.color}40` : "none",
-        opacity: 0,
-        animation: `cardIn 0.5s cubic-bezier(.4,0,.2,1) ${index * 0.05}s forwards`,
-      }}
+      className={`glass-card glass-card-hover group ${isLarge ? 'p-8 col-span-1 sm:col-span-2' : 'p-6 col-span-1'} animate-slide-up`}
+      style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
     >
-      <div style={{
-        position: "absolute", top: -40, right: -40, width: 120, height: 120,
-        borderRadius: "50%", background: mod.color,
-        opacity: hovered ? 0.06 : 0, transition: "opacity 0.4s", filter: "blur(40px)",
-        pointerEvents: "none",
-      }} />
+      {/* Background glow specific to module color */}
+      <div 
+        className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none"
+        style={{ background: mod.color }} 
+      />
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: isLarge ? 16 : 12 }}>
-          <div style={{
-            width: isLarge ? 48 : 40, height: isLarge ? 48 : 40,
-            borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center",
-            background: mod.color + "15", border: `1px solid ${mod.color}25`,
-            boxShadow: hovered ? `0 0 20px ${mod.color}20` : "none", transition: "all 0.3s",
-          }}>
-            <mod.icon size={isLarge ? 22 : 18} color={mod.color} strokeWidth={1.8} />
+      <div className="relative z-10 flex flex-col h-full justify-between">
+        <div className={`flex items-start justify-between ${isLarge ? 'mb-6' : 'mb-4'}`}>
+          <div 
+            className={`flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-all duration-300 shadow-lg ${isLarge ? 'w-14 h-14' : 'w-12 h-12'}`}
+            style={{ boxShadow: `0 4px 20px -5px ${mod.color}20` }}
+          >
+            <mod.icon size={isLarge ? 26 : 22} color={mod.color} strokeWidth={1.8} className="group-hover:scale-110 transition-transform duration-500" />
           </div>
 
-          {/* Live badge — only shown if data exists */}
           {badge && (
-            <span style={{
-              fontSize: 10, padding: "3px 10px", borderRadius: 20,
-              background: mod.color + "12", color: mod.color,
-              border: `1px solid ${mod.color}20`,
-              fontFamily: "'Noto Kufi Arabic', sans-serif",
-            }}>{badge}</span>
+            <span 
+              className="text-[10px] px-3 py-1 rounded-full font-medium"
+              style={{ background: `${mod.color}15`, color: mod.color, border: `1px solid ${mod.color}30` }}
+            >
+              {badge}
+            </span>
           )}
           {mod.locked && !badge && (
-            <span style={{
-              fontSize: 10, padding: "3px 10px", borderRadius: 20,
-              background: "#FBBF2412", color: "#FBBF24", border: "1px solid #FBBF2420",
-            }}>PIN</span>
+            <span className="text-[10px] px-3 py-1 rounded-full font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              PIN
+            </span>
           )}
         </div>
 
-        <div style={{ marginBottom: 4 }}>
-          <span style={{
-            fontSize: isLarge ? 22 : 17, fontWeight: 700,
-            color: hovered ? mod.color : "#C0C8D8",
-            fontFamily: "'Noto Kufi Arabic', sans-serif",
-            transition: "color 0.3s", letterSpacing: "-0.3px",
-          }}>{mod.nameAr}</span>
+        <div>
+          <h3 
+            className={`font-bold transition-colors duration-300 tracking-tight ${isLarge ? 'text-2xl' : 'text-lg'}`}
+            style={{ color: '#E2E8F0' }}
+          >
+            <span className="group-hover:text-transparent group-hover:bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${mod.color}, #ffffff)` }}>
+              {mod.nameAr}
+            </span>
+          </h3>
+          <div className={`font-mono uppercase tracking-[0.15em] text-slate-400 mt-1 mb-2 ${isLarge ? 'text-xs' : 'text-[10px]'}`}>
+            {mod.nameEn}
+          </div>
+          <p className="text-xs text-slate-400/80 leading-relaxed font-normal">
+            {mod.desc}
+          </p>
         </div>
-        <div style={{
-          fontSize: isLarge ? 12 : 11, color: "#3D5A80",
-          fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase",
-          letterSpacing: "1.5px", marginBottom: 6,
-        }}>{mod.nameEn}</div>
-        <p style={{
-          fontSize: 12, color: "#4A6A8A", margin: 0, lineHeight: 1.5,
-          fontFamily: "'Noto Kufi Arabic', sans-serif",
-        }}>{mod.desc}</p>
 
-        <div style={{
-          position: "absolute", bottom: 0, right: 0,
-          opacity: hovered ? 1 : 0, transform: hovered ? "translateX(0)" : "translateX(-4px)",
-          transition: "all 0.3s",
-        }}>
-          <ChevronRight size={16} color={mod.color} />
+        <div className="absolute bottom-6 right-6 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+          <ChevronRight size={18} color={mod.color} />
         </div>
       </div>
     </div>
@@ -179,16 +153,13 @@ function QuickStatItem({ icon: Icon, label, value, color }: {
   icon: React.ElementType; label: string; value: string; color: string;
 }) {
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
-      borderRadius: 10, background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", border: "1px solid #0F2847",
-    }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: color + "10" }}>
-        <Icon size={14} color={color} />
+    <div className="glass-card flex items-center gap-3 px-4 py-3 border border-slate-700/50 hover:border-slate-600 transition-colors w-full sm:w-auto">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5" style={{ boxShadow: `0 0 15px -5px ${color}30` }}>
+        <Icon size={18} color={color} />
       </div>
       <div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#C0C8D8", fontFamily: "'JetBrains Mono', monospace" }}>{value}</div>
-        <div style={{ fontSize: 10, color: "#3D5A80" }}>{label}</div>
+        <div className="text-base font-bold text-slate-200 font-mono leading-none">{value}</div>
+        <div className="text-[11px] text-slate-400 font-medium mt-1 uppercase tracking-wider">{label}</div>
       </div>
     </div>
   );
@@ -202,7 +173,7 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
   const [searchFocused, setSearchFocused] = useState(false);
   const { insights, dailyBrief } = useCrossModuleInsights();
   const [time, setTime] = useState(new Date());
-  // open command palette via Cmd+K (handled in CommandPalette itself)
+  
   const notifications = useAppStore(s => s.notifications);
   const markNotificationRead = useAppStore(s => s.markNotificationRead);
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -224,12 +195,11 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
     onNavigate?.(id);
   };
 
-  // ── Error state ───────────────────────────────────────────
   if (error && !loading) {
     return (
-      <div style={{ minHeight: "100vh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
-        <div style={{ color: "#F87171", fontFamily: "'Noto Kufi Arabic', sans-serif", fontSize: 15, textAlign: "center", maxWidth: 320 }}>{error}</div>
-        <button onClick={refetch} style={{ padding: "8px 20px", borderRadius: 8, background: "#08A7E715", border: "1px solid #08A7E730", color: "#08A7E7", cursor: "pointer", fontSize: 13, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 relative overflow-hidden">
+        <div className="text-red-400 text-sm text-center max-w-xs">{error}</div>
+        <button onClick={refetch} className="premium-btn px-6 py-2">
           إعادة المحاولة
         </button>
       </div>
@@ -237,166 +207,149 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: BG, fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", color: "#C0C8D8", position: "relative", overflow: "hidden" }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <style>{`
-        @keyframes cardIn { from { opacity:0; transform:translateY(16px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-        @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes rotateSlow { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
-        @keyframes pulseGlow { 0%,100%{opacity:0.03} 50%{opacity:0.07} }
-        * { box-sizing:border-box; margin:0; padding:0; }
-        ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-thumb { background:#0F2847; border-radius:2px; }
-      `}</style>
-
-      {/* Background */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
-        <svg style={{ position: "absolute", top: "50%", left: "50%", width: 900, height: 900, transform: "translate(-50%,-50%)", opacity: 0.02, animation: "rotateSlow 120s linear infinite" }} viewBox="0 0 400 400">
-          {Array.from({ length: 24 }).map((_, i) => (
-            <line key={i} x1="200" y1="200" x2={200 + 180 * Math.cos((i * Math.PI * 2) / 24)} y2={200 + 180 * Math.sin((i * Math.PI * 2) / 24)} stroke="#08A7E7" strokeWidth="0.5" />
-          ))}
-          <circle cx="200" cy="200" r="120" fill="none" stroke="#08A7E7" strokeWidth="0.5" />
-          <circle cx="200" cy="200" r="180" fill="none" stroke="#08A7E7" strokeWidth="0.3" />
-          <circle cx="200" cy="200" r="60"  fill="none" stroke="#08A7E7" strokeWidth="0.5" />
-        </svg>
-        <div style={{ position: "absolute", top: -200, right: -200, width: 500, height: 500, borderRadius: "50%", background: "#08A7E7", animation: "pulseGlow 6s ease infinite", filter: "blur(120px)" }} />
-        <div style={{ position: "absolute", bottom: -200, left: -200, width: 400, height: 400, borderRadius: "50%", background: "#A78BFA", opacity: 0.03, filter: "blur(120px)" }} />
-      </div>
-
-
-      {/* Premium Background Decor */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", top: "10%", left: "5%", width: "40vw", height: "40vw", background: "radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%)", filter: "blur(80px)" }} />
-        <div style={{ position: "absolute", bottom: "10%", right: "5%", width: "50vw", height: "50vw", background: "radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)", filter: "blur(80px)" }} />
+    <div className="min-h-screen relative overflow-hidden pb-20">
+      
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-sky-500/10 blur-[120px] mix-blend-screen animate-pulse-soft" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-indigo-500/10 blur-[150px] mix-blend-screen animate-float" />
+        <div className="absolute top-[40%] right-[20%] w-[30vw] h-[30vw] rounded-full bg-purple-500/5 blur-[100px] mix-blend-screen" />
       </div>
     
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 1100, margin: "0 auto", padding: "0 40px" }}>
+      <div className="relative z-10 max-w-[1200px] mx-auto px-6 md:px-10">
 
-        {/* Top Bar */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0", animation: "slideDown 0.6s ease" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <ItqanLogo size={42} />
+        {/* Top Navigation */}
+        <header className="flex items-center justify-between py-6 animate-slide-up">
+          <div className="flex items-center gap-4">
+            <ItqanLogo size={46} />
             <div>
-              <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.5px", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
-                <span style={{ color: "#08A7E7" }}>إت</span><span style={{ color: "#C0C0C0" }}>قان</span>
-              </div>
-              <div style={{ fontSize: 10, color: "#3D5A80", letterSpacing: "2px", textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace" }}>
-                Life operating system
+              <h1 className="text-2xl font-black tracking-tighter">
+                <span className="text-sky-500">إت</span><span className="text-slate-200">قان</span>
+              </h1>
+              <div className="text-[10px] text-slate-400 tracking-[0.2em] uppercase font-mono mt-0.5">
+                Life Operating System
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "8px 14px",
-              borderRadius: 10, background: searchFocused ? "rgba(15, 23, 42, 0.9)" : "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)",
-              border: `1px solid ${searchFocused ? "#08A7E740" : "rgba(51, 65, 85, 0.4)"}`,
-              transition: "all 0.3s", width: 220,
-            }}>
-              <Search size={14} color="#3D5A80" />
+          <div className="flex items-center gap-3 md:gap-5">
+            <div className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${searchFocused ? 'bg-slate-800/80 ring-1 ring-sky-500/50' : 'bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700/50'} backdrop-blur-md w-64`}>
+              <Search size={16} className="text-slate-400" />
               <input
-                placeholder="Search... (Ctrl+K)"
+                placeholder="Search OS... (Ctrl+K)"
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
-                style={{ background: "none", border: "none", outline: "none", fontSize: 12, color: "#C0C8D8", width: "100%", fontFamily: "inherit" }}
+                className="bg-transparent border-none outline-none text-sm text-slate-200 w-full placeholder:text-slate-500"
               />
-              <div style={{ padding: "2px 6px", borderRadius: 4, background: "rgba(51, 65, 85, 0.4)", fontSize: 10, color: "#3D5A80", fontFamily: "'JetBrains Mono', monospace" }}>
-                <Command size={10} style={{ display: "inline", verticalAlign: "middle" }} /> K
+              <div className="px-1.5 py-0.5 rounded md bg-slate-700/50 text-[10px] text-slate-400 font-mono flex items-center gap-0.5">
+                <Command size={10} /> K
               </div>
             </div>
 
-            <div style={{ width: 1, height: 24, background: "rgba(51, 65, 85, 0.4)" }} />
+            <div className="w-px h-8 bg-slate-700/50 hidden md:block" />
 
-            <div style={{ position: "relative" }}>
-              <button onClick={() => setShowNotifs(v => !v)} title="الإشعارات" style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}>
-                <Bell size={15} color="#3D5A80" />
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifs(v => !v)} 
+                className="w-10 h-10 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 flex items-center justify-center transition-all relative"
+              >
+                <Bell size={18} className="text-slate-300" />
                 {unreadCount > 0 && (
-                  <div style={{ position: "absolute", top: 6, right: 6, width: 6, height: 6, borderRadius: "50%", background: "#08A7E7" }} />
+                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-sky-500 ring-2 ring-slate-900" />
                 )}
               </button>
+              
               {showNotifs && (
-                <div style={{ position: "absolute", top: 44, right: 0, width: 320, maxHeight: 400, overflowY: "auto", background: "rgba(15, 23, 42, 0.97)", backdropFilter: "blur(16px)", border: "1px solid #0F2847", borderRadius: 12, padding: 8, zIndex: 1000, boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}>
+                <div className="absolute top-12 right-0 w-80 max-h-[400px] overflow-y-auto glass-panel rounded-2xl p-2 z-50 animate-slide-up">
                   {notifications.length === 0 ? (
-                    <div style={{ padding: 24, textAlign: "center", color: "#3D5A80", fontSize: 13, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد إشعارات</div>
+                    <div className="p-6 text-center text-sm text-slate-400">لا توجد إشعارات</div>
                   ) : notifications.map(n => (
-                    <div key={n.id} onClick={() => markNotificationRead(n.id)} style={{ padding: 12, borderRadius: 8, cursor: "pointer", marginBottom: 4, background: n.read ? "transparent" : "rgba(8, 167, 231, 0.08)", border: "1px solid " + (n.read ? "transparent" : "rgba(8, 167, 231, 0.2)") }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#C0C8D8", fontFamily: "'Noto Kufi Arabic', sans-serif", marginBottom: 4 }}>{n.title}</div>
-                      <div style={{ fontSize: 11, color: "#94A3B8", fontFamily: "'Noto Kufi Arabic', sans-serif", lineHeight: 1.5 }}>{n.message}</div>
+                    <div 
+                      key={n.id} 
+                      onClick={() => markNotificationRead(n.id)} 
+                      className={`p-3 rounded-xl cursor-pointer mb-1 transition-colors ${n.read ? 'hover:bg-white/5' : 'bg-sky-500/10 border border-sky-500/20'}`}
+                    >
+                      <div className="text-sm font-bold text-slate-200 mb-1">{n.title}</div>
+                      <div className="text-xs text-slate-400 leading-relaxed">{n.message}</div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            <button onClick={onLogout} title="تسجيل الخروج" style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid #0F2847", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-              <LogOut size={15} color="#3D5A80" />
+            <button 
+              onClick={onLogout} 
+              className="w-10 h-10 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 hover:text-red-400 border border-slate-700/50 flex items-center justify-center transition-all text-slate-300"
+            >
+              <LogOut size={18} />
             </button>
 
-            <div style={{ width: 1, height: 24, background: "rgba(51, 65, 85, 0.4)" }} />
+            <div className="w-px h-8 bg-slate-700/50 hidden md:block" />
 
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ textAlign: "right" }}>
-                {/* Live: displayName from profile */}
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#C0C8D8" }}>
+            <div className="flex items-center gap-3 pl-2">
+              <div className="text-right hidden sm:block">
+                <div className="text-sm font-bold text-slate-200">
                   {loading ? '...' : displayName}
                 </div>
-                {/* Live: rank from shared score */}
-                <div style={{ fontSize: 10, color: "#08A7E7", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
+                <div className="text-[11px] text-sky-400 font-medium">
                   {loading ? '...' : (shared?.rankTitle ?? '—')}
                 </div>
               </div>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #08A7E720, #08A7E708)", border: "2px solid #08A7E730", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 15, fontWeight: 600, color: "#08A7E7" }}>
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sky-500/20 to-indigo-500/20 border border-sky-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.2)]">
+                <span className="text-lg font-black premium-gradient-text">
                   {loading ? '?' : avatarLetter}
                 </span>
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Greeting + Quick Stats */}
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 8, marginBottom: 32, animation: "fadeIn 0.8s ease 0.2s both" }}>
+        {/* Hero Section */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between mt-8 mb-12 animate-slide-up" style={{ animationDelay: '100ms' }}>
           <div>
-            <div style={{ fontSize: 14, color: "#3D5A80", marginBottom: 4, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
-              {greeting} يا <span className='premium-gradient-text' style={{ fontWeight: 800 }}>{loading ? '...' : displayName}</span>
+            <div className="text-lg text-slate-400 mb-2 font-medium">
+              {greeting} يا <span className="premium-gradient-text font-black">{loading ? '...' : displayName}</span>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#E8EBF0", fontFamily: "'Noto Kufi Arabic', sans-serif", letterSpacing: "-0.5px" }}>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-100 tracking-tight leading-tight">
               اختر وِجهتك اليوم
-            </div>
-            <div style={{ fontSize: 12, color: "#2A4A6A", marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>
-              {time.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}
-              {timesLoading && <span style={{ color: "#08A7E7", marginLeft: 8 }}>loading times...</span>}
+            </h2>
+            <div className="flex items-center gap-3 mt-4">
+              <div className="text-sm text-slate-400 font-mono bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                {time.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}
+              </div>
+              {timesLoading && <span className="text-sky-500 text-xs animate-pulse">يتم تحديث المواقيت...</span>}
             </div>
           </div>
 
-          {/* Live quick stats */}
-          <div style={{ display: "flex", gap: 10 }}>
-            <QuickStatItem icon={Flame}      label="Streak"      value={loading ? '...' : quickStats.streak}     color="#FB923C" />
-            <QuickStatItem icon={TrendingUp} label="Score"       value={loading ? '...' : quickStats.score}      color="#08A7E7" />
-            <QuickStatItem icon={Clock}      label="Next prayer" value={loading ? '...' : quickStats.nextPrayer} color="#A78BFA" />
+          <div className="flex flex-wrap gap-3 mt-6 md:mt-0">
+            <QuickStatItem icon={Flame}      label="Streak"      value={loading ? '...' : quickStats.streak}     color="#f97316" />
+            <QuickStatItem icon={TrendingUp} label="Score"       value={loading ? '...' : quickStats.score}      color="#0ea5e9" />
+            <QuickStatItem icon={Clock}      label="Next prayer" value={loading ? '...' : quickStats.nextPrayer} color="#a855f7" />
           </div>
-        </div>
+        </section>
 
         
         {/* Daily Brief */}
         {dailyBrief && (dailyBrief.insights.length > 0 || dailyBrief.todayTaskCount > 0) && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 20, marginBottom: 32, animation: "slideDown 0.6s ease 0.1s both" }}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-12 animate-slide-up" style={{ animationDelay: '200ms' }}>
             
             {/* AI Insights Card */}
             {dailyBrief.insights.length > 0 && (
-              <div className="glass-card" style={{ padding: 24, display: "flex", gap: 16, alignItems: "flex-start", background: "rgba(15, 23, 42, 0.8)", borderLeft: "4px solid #08A7E7" }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, background: "#08A7E715", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Sparkles color="#08A7E7" size={24} />
+              <div className="glass-card lg:col-span-2 p-6 flex flex-col sm:flex-row gap-5 items-start border-l-4 border-l-sky-500">
+                <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(14,165,233,0.15)]">
+                  <Sparkles className="text-sky-400" size={28} />
                 </div>
-                <div>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: "#E8EBF0", margin: "0 0 6px", fontFamily: "'Noto Kufi Arabic', sans-serif" }}>محرك الذكاء</h3>
-                  <div style={{ fontSize: 14, color: "#94A3B8", fontFamily: "'Noto Kufi Arabic', sans-serif", lineHeight: 1.6, marginBottom: 12 }}>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-slate-100 mb-2">محرك الذكاء الاصطناعي</h3>
+                  <p className="text-sm text-slate-300 leading-relaxed mb-4">
                     {dailyBrief.insights[0].description}
-                  </div>
+                  </p>
                   {dailyBrief.insights[0].actionable && (
-                    <button onClick={() => handleModuleClick(dailyBrief.insights[0].actionPath || "intelligence")} style={{ background: "transparent", border: "none", color: "#08A7E7", fontWeight: 700, cursor: "pointer", fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {dailyBrief.insights[0].actionLabel || 'اتخذ إجراء'} <ChevronRight size={14} />
+                    <button 
+                      onClick={() => handleModuleClick(dailyBrief.insights[0].actionPath || "intelligence")} 
+                      className="premium-btn px-5 py-2 text-sm inline-flex items-center gap-2"
+                    >
+                      {dailyBrief.insights[0].actionLabel || 'اتخذ إجراء'} <ChevronRight size={16} />
                     </button>
                   )}
                 </div>
@@ -405,25 +358,26 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
 
             {/* Daily Work Summary Card */}
             {dailyBrief.workSummary && (
-              <div className="glass-card" style={{ padding: 24, display: "flex", flexDirection: "column", justifyContent: "center", background: "rgba(15, 23, 42, 0.8)" }}>
-                <h3 style={{ fontSize: 14, color: "#94A3B8", margin: "0 0 16px", fontFamily: "'Noto Kufi Arabic', sans-serif", display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Briefcase size={16} /> مهام اليوم
+              <div className="glass-card p-6 flex flex-col justify-center">
+                <h3 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
+                  <Briefcase size={16} className="text-orange-400" /> مهام اليوم
                 </h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                  <div>
-                    <div style={{ fontSize: 32, fontWeight: 800, color: "#F1F5F9", lineHeight: 1 }}>
-                      {dailyBrief.todayDoneCount}<span style={{ fontSize: 16, color: "#3D5A80" }}>/{dailyBrief.todayTaskCount + dailyBrief.todayDoneCount}</span>
-                    </div>
+                <div className="flex justify-between items-end mb-4">
+                  <div className="text-5xl font-black text-white leading-none">
+                    {dailyBrief.todayDoneCount}<span className="text-2xl text-slate-500">/{dailyBrief.todayTaskCount + dailyBrief.todayDoneCount}</span>
                   </div>
                   {dailyBrief.urgentCount > 0 && (
-                    <div style={{ background: '#EF444415', color: '#EF4444', padding: '4px 10px', borderRadius: 8, fontSize: 12, fontWeight: 'bold' }}>
+                    <div className="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg text-xs font-bold animate-pulse-soft">
                       {dailyBrief.urgentCount} متأخرة
                     </div>
                   )}
                 </div>
                 {dailyBrief.todayTaskCount + dailyBrief.todayDoneCount > 0 && (
-                  <div style={{ height: 4, background: 'rgba(51, 65, 85, 0.4)', borderRadius: 2, marginTop: 16, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${(dailyBrief.todayDoneCount / (dailyBrief.todayTaskCount + dailyBrief.todayDoneCount)) * 100}%`, background: '#08A7E7', borderRadius: 2 }} />
+                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-sky-500 to-indigo-500 rounded-full transition-all duration-1000" 
+                      style={{ width: `${(dailyBrief.todayDoneCount / (dailyBrief.todayTaskCount + dailyBrief.todayDoneCount)) * 100}%` }} 
+                    />
                   </div>
                 )}
               </div>
@@ -432,8 +386,7 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
         )}
 
         {/* Module Grid */}
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, paddingBottom: 60 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {MODULES.map((mod, i) => (
             <ModuleCard
               key={mod.id}
@@ -445,28 +398,22 @@ export default function HomeScreen({ onNavigate, onLogout }: { onNavigate?: (id:
           ))}
         </div>
 
-        {/* Bottom Bar */}
-        <div style={{
-          position: "fixed", bottom: 0, left: 0, right: 0,
-          padding: "12px 40px",
-          background: "linear-gradient(transparent, #000E30E0 30%, #000E30)",
-          display: "flex", justifyContent: "center", alignItems: "center", gap: 32,
-          animation: "fadeIn 1s ease 0.8s both",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#2A4A6A" }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34D399" }} />
-            <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>All systems active</span>
-          </div>
-          <div style={{ width: 1, height: 12, background: "rgba(51, 65, 85, 0.4)" }} />
-          <div style={{ fontSize: 11, color: "#2A4A6A", fontFamily: "'JetBrains Mono', monospace" }}>v2.0 — Itqan Life OS</div>
-          <div style={{ width: 1, height: 12, background: "rgba(51, 65, 85, 0.4)" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#2A4A6A" }}>
-            <Shield size={11} color="#2A4A6A" />
-            <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>Encrypted</span>
-          </div>
-        </div>
       </div>
 
+      {/* Bottom Status Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#020617] via-[#020617]/90 to-transparent flex justify-center items-center gap-6 z-50 pointer-events-none">
+        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          System Online
+        </div>
+        <div className="w-1 h-1 rounded-full bg-slate-700" />
+        <div className="text-xs text-slate-500 font-mono">v2.1 — Atlas Edition</div>
+        <div className="w-1 h-1 rounded-full bg-slate-700" />
+        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+          <Shield size={12} className="text-slate-500" />
+          Secured
+        </div>
+      </div>
 
     </div>
   );

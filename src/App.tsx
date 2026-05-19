@@ -27,25 +27,21 @@ const BG = '#000E30';
 // ── Back-button wrapper used by full-screen pages that don't supply their own ──
 function PageWrapper({ children, onBack }: { children: React.ReactNode; onBack: () => void }) {
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: '#C0C8D8' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '16px 24px', borderBottom: '1px solid #0F2847',
-        position: 'sticky', top: 0, background: BG, zIndex: 10,
-      }}>
+    <div className="min-h-screen bg-background text-slate-200">
+      <div className="sticky top-0 z-50 flex items-center gap-3 px-6 py-4 glass-panel border-b border-white/5">
         <button
           onClick={onBack}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
-            background: 'transparent', border: '1px solid #0F2847', color: '#3D5A80',
-            fontSize: 13, fontFamily: 'inherit',
-          }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all text-sm font-medium"
         >
           <ArrowLeft size={16} /> الرئيسية
         </button>
       </div>
-      <div>{children}</div>
+      <div className="animate-slide-up relative z-10">{children}</div>
+      
+      {/* Background Decor */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-sky-500/5 blur-[120px] mix-blend-screen" />
+      </div>
     </div>
   );
 }
@@ -54,15 +50,16 @@ function PageWrapper({ children, onBack }: { children: React.ReactNode; onBack: 
 function ComingSoon({ nameAr, nameEn, onBack }: { nameAr: string; nameEn: string; onBack: () => void }) {
   return (
     <PageWrapper onBack={onBack}>
-      <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        minHeight: 'calc(100vh - 65px)', gap: 16, textAlign: 'center', padding: 40,
-      }}>
-        <Clock size={48} color='#08A7E7' strokeWidth={1.5} />
-        <div style={{ fontSize: 28, fontWeight: 700, color: '#C0C8D8', fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{nameAr}</div>
-        <div style={{ fontSize: 12, color: '#3D5A80', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '2px', textTransform: 'uppercase' }}>{nameEn}</div>
-        <div style={{ fontSize: 15, color: '#4A6A8A', fontFamily: "'Noto Kufi Arabic', sans-serif", marginTop: 8 }}>هذا القسم قيد التطوير — قريباً</div>
-        <div style={{ fontSize: 11, color: '#2A4A6A', fontFamily: "'JetBrains Mono', monospace" }}>Coming soon</div>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] gap-4 text-center p-10">
+        <div className="w-24 h-24 rounded-3xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(14,165,233,0.15)]">
+          <Clock size={40} className="text-sky-400" strokeWidth={1.5} />
+        </div>
+        <h2 className="text-4xl font-black text-white tracking-tight">{nameAr}</h2>
+        <div className="text-sm text-sky-500/70 font-mono tracking-[0.2em] uppercase">{nameEn}</div>
+        <p className="text-lg text-slate-400 mt-2 font-medium">هذا القسم قيد التطوير — قريباً</p>
+        <div className="text-xs text-slate-500 font-mono bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700/50 mt-4">
+          Module in Development
+        </div>
       </div>
     </PageWrapper>
   );
