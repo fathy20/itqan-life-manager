@@ -23,6 +23,7 @@ const TABS = [
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
+type HealthMetricKey = "sleepHours" | "phoneHours" | "waterLiters" | "steps";
 
 export default function HealthScreen({ onBack }: { onBack: () => void }) {
 
@@ -51,7 +52,7 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
       habitsApiNew.list(),
     ]);
     if (lRes.success && lRes.data) {
-      const todayEntry = lRes.data.find((l: any) => l.date === today || l.id === today);
+      const todayEntry = lRes.data.find((l) => l.date === today || ("id" in l && l.id === today));
       if (todayEntry) setTodayLog(todayEntry);
     }
     if (hRes.success && hRes.data) setHabits(hRes.data);
@@ -69,7 +70,7 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
       phoneHours: todayLog.phoneHours || 0,
       waterLiters: todayLog.waterLiters || 0,
       steps: todayLog.steps || 0,
-    } as any);
+    });
     setSaving(false);
   };
 
@@ -142,7 +143,7 @@ export default function HealthScreen({ onBack }: { onBack: () => void }) {
                     </div>
                     <input
                       type="number"
-                      value={(todayLog as any)[item.key] || ""}
+                      value={todayLog[item.key as HealthMetricKey] || ""}
                       onChange={e => setTodayLog(prev => ({ ...prev, [item.key]: parseFloat(e.target.value) || 0 }))}
                       placeholder={`0 ${item.unit}`}
                       style={{ width: "100%", background: BG, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "10px 14px", color: TEXT, fontSize: 20, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textAlign: "center" }}

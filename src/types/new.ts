@@ -5,7 +5,7 @@
 //  DO NOT import from this file in legacy screens
 // ═══════════════════════════════════════════════════════════════
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;

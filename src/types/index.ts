@@ -68,6 +68,116 @@ export type Priority = 'low' | 'medium' | 'high';
 /** @deprecated Use Task.completed (boolean) instead */
 export type Status = 'todo' | 'in-progress' | 'completed' | 'on-hold';
 
+export interface LegacySubject {
+  id: string;
+  name: string;
+  color?: string;
+  examDate?: string;
+  examTime?: string | { start: string; end: string };
+  difficulty?: number | string;
+  totalLectures?: number;
+  completedLectures?: number;
+  carryover?: boolean;
+  isPending?: boolean;
+  notes?: string;
+}
+
+export interface LegacyTask {
+  id: string;
+  title: string;
+  type: string;
+  status?: Status;
+  priority?: Priority;
+  color?: string;
+  completed?: boolean;
+  focusLevel?: string;
+  focusType?: string;
+  estimatedMinutes?: number;
+  projectId?: string;
+  dueDate?: string;
+  deadline?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LegacyProject {
+  id: string;
+  name: string;
+  type?: string;
+  client?: string;
+  priority?: Priority;
+  color?: string;
+  progress?: number;
+  status: string;
+  deadline?: string;
+}
+
+export interface LegacyCourse {
+  id: string;
+  name: string;
+  platform?: string;
+  totalHours?: number;
+  completedHours?: number;
+  weeklyGoalHours?: number;
+  color?: string;
+  totalLessons?: number;
+  completedLessons?: number;
+  progress?: number;
+  status?: string;
+}
+
+export interface LegacyTransaction {
+  id: string;
+  title: string;
+  amount: number;
+  type: string;
+  category: string;
+  date: string;
+}
+
+export interface LegacyWishlistItem {
+  id: string;
+  name: string;
+  price: number;
+  savedAmount: number;
+  priority: Priority;
+}
+
+export interface LegacyCommitment {
+  id: string;
+  name: string;
+  amount: number;
+  dueDate: string;
+  type?: string;
+}
+
+export interface LegacyHabit {
+  id: string;
+  name: string;
+  category?: string;
+  frequency?: string;
+  streak: number;
+  completedDates: string[];
+  icon?: string;
+}
+
+export interface LegacyLifestyleLog {
+  date: string;
+  sleepHours?: number;
+  phoneHours?: number;
+  waterLiters?: number;
+  steps?: number;
+  wakeUpTime?: string;
+}
+
+export interface LegacyFocusSession {
+  id: string;
+  duration: number;
+  type: string;
+  label?: string;
+  completedAt?: string;
+}
+
 // Legacy AppState — kept for screens still using it
 /** @deprecated Migrate to individual hooks (useSalahNew, useQuranNew, etc.) */
 export interface AppState {
@@ -79,6 +189,7 @@ export interface AppState {
     level: string;
     semester: string;
     role: string;
+    onboardingCompleted?: boolean;
     timezone: string;
     locale: string;
   };
@@ -104,15 +215,15 @@ export interface AppState {
     ramadanMode: 'auto' | 'manual';
     eidMode: 'auto' | 'manual';
   };
-  subjects: any[];
-  tasks: any[];
-  projects: any[];
-  courses: any[];
-  transactions: any[];
-  wishlist: any[];
-  commitments: any[];
+  subjects: LegacySubject[];
+  tasks: LegacyTask[];
+  projects: LegacyProject[];
+  courses: LegacyCourse[];
+  transactions: LegacyTransaction[];
+  wishlist: LegacyWishlistItem[];
+  commitments: LegacyCommitment[];
   monthlySalary: number;
-  habits: any[];
-  lifestyleLogs: any[];
-  focusSessions: any[];
+  habits: LegacyHabit[];
+  lifestyleLogs: LegacyLifestyleLog[];
+  focusSessions: LegacyFocusSession[];
 }

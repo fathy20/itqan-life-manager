@@ -69,7 +69,7 @@ function ComingSoon({ nameAr, nameEn, onBack }: { nameAr: string; nameEn: string
 function AppInner() {
   const { currentUser, state } = useApp();
   const [activePage, setActivePage] = useState('dashboard');
-  const isOnboarded = !!state.profile?.name;
+  const isOnboarded = state.profile?.onboardingCompleted === true;
 
   if (!currentUser) return <AuthScreen />;
   if (!isOnboarded) return <Onboarding onComplete={() => {}} />;

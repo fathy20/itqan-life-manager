@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { auth } from '../lib/firebase';
-import { profileApi, subjectsApi, lifestyleApi } from '../lib/api';
+import { doc, setDoc } from 'firebase/firestore';
+import { useApp } from '../context/AppContext';
+import { db } from '../lib/firebase';
+import type { AppState } from '../types';
+import type { LegacyCourse, LegacySubject } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, Check, Plus, Trash2, Sparkles } from 'lucide-react';
 
@@ -21,6 +25,7 @@ const DEFAULT_HABITS = [
 ];
 
 export default function Onboarding({ onComplete }: { onComplete: () => void }) {
+  const { state, setState } = useApp();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -35,11 +40,11 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   const [role, setRole] = useState('');
 
   // Step 2
-  const [subjects, setSubjects] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<Omit<LegacySubject, 'id'>[]>([]);
   const [subForm, setSubForm] = useState({ name: '', examDate: '', difficulty: 3, totalLectures: 12 });
 
   // Step 3
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<Omit<LegacyCourse, 'id' | 'progress'>[]>([]);
   const [courseForm, setCourseForm] = useState({ name: '', platform: '', totalLessons: 20 });
 
   // Step 4
@@ -56,34 +61,45 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
     setLoading(true);
     try {
       const uid = auth.currentUser?.uid;
-      if (!uid) return;
+      if (!uid) throw new Error('Missing authenticated user');
 
-      // Save profile
-      await profileApi.update({
-        displayName: name,
-        university,
-        role: role as any,
-        onboardingCompleted: true,
-        language: 'ar',
-        timezone: 'Africa/Cairo',
-        prayerMethod: 5,
-      } as any);
+      const genId = () => Math.random().toString(36).substr(2, 9);
 
-      // Save subjects
-      for (const s of subjects) {
-        await subjectsApi.create({ ...s, completedLectures: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
-      }
+      const nextState: AppState = {
+        ...state,
+        profile: {
+          ...state.profile,
+          name: name,
+          university,
+          role,
+          onboardingCompleted: true,
+        },
+        subjects: [
+          ...state.subjects,
+          ...subjects.map(s => ({ ...s, id: genId(), completedLectures: 0 }))
+        ],
+        courses: [
+          ...state.courses,
+          ...courses.map(c => ({ ...c, id: genId(), completedLessons: 0, progress: 0 }))
+        ],
+        habits: [
+          ...state.habits,
+          ...habits.filter(h => h.selected).map(h => ({
+            id: genId(),
+            name: h.nameAr || h.name,
+            streak: 0,
+            completedDates: []
+          }))
+        ]
+      };
 
-      // Save habits
-      const selectedHabits = habits.filter(h => h.selected);
-      for (const h of selectedHabits) {
-        await lifestyleApi.create({ name: h.name });
-      }
+      setState(nextState);
+      localStorage.setItem('itqan_state', JSON.stringify(nextState));
+      await setDoc(doc(db, 'users', uid), nextState, { merge: true });
 
       onComplete();
     } catch (err) {
       console.error('Onboarding error:', err);
-      onComplete(); // proceed anyway
     } finally {
       setLoading(false);
     }

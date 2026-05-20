@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { quranApiNew } from '../lib/api/index';
-import type { KhatmaPlan, SurahHifz } from '../types/new';
+import type { KhatmaPlan, QuranSession, SurahHifz } from '../types/new';
 
 export interface UseQuranReturn {
   // Data
@@ -88,7 +88,7 @@ export function useQuranNew(): UseQuranReturn {
     surah?: number;
     date: string;
   }) => {
-    const payload: any = { type: data.type, date: data.date };
+    const payload: Pick<QuranSession, 'type' | 'date'> & Partial<QuranSession> = { type: data.type, date: data.date };
     if (data.type === 'reading' && data.pages && activePlan) {
       payload.fromPage = activePlan.currentPage;
       payload.toPage   = activePlan.currentPage + data.pages;

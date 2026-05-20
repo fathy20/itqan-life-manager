@@ -2,14 +2,15 @@
  * WorkScreen — Tasks, Projects, Courses
  * Connected to: tasksApiNew, projectsApiNew, coursesApiNew
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useApp } from "../context/AppContext";
 import {
   Briefcase, Plus, Check, X, ChevronDown,
   Trash2, Edit3, FolderOpen, BookOpen, Layers,
   ArrowLeft, Clock, Target, TrendingUp,
 } from "lucide-react";
-import { tasksApiNew, projectsApiNew, coursesApiNew } from "../lib/api/index";
-import type { Task, Project, Course } from "../types/new";
+import type { Task } from "../types/new";
+import type { LegacyTask } from "../types";
 
 const BG = "#020617";
 const CARD = "rgba(15, 23, 42, 0.7)";
@@ -85,6 +86,10 @@ function TaskForm({ onSave, onCancel }: { onSave: (t: Partial<Task>) => void; on
 
 // ── Main Screen ──────────────────────────────────────────────
 export default function WorkScreen({ onBack }: { onBack: () => void }) {
+  const { state, addTask, updateTask, deleteTask } = useApp();
+  const tasks = state.tasks;
+  const projects = state.projects;
+  const courses = state.courses;
 
   const SystemLogo = () => (
     <div style={{
@@ -98,38 +103,30 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
   );
 
   const [tab, setTab] = useState<TabId>("tasks");
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    const [tRes, pRes, cRes] = await Promise.all([
-      tasksApiNew.list(), projectsApiNew.list(), coursesApiNew.list(),
-    ]);
-    if (tRes.success && tRes.data) setTasks(tRes.data);
-    if (pRes.success && pRes.data) setProjects(pRes.data);
-    if (cRes.success && cRes.data) setCourses(cRes.data);
-    setLoading(false);
-  }, []);
+  const handleAddTask = (data: Partial<Task>) => {
+    if (!data.title || !data.type || !data.focusLevel) return;
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
-
-  const addTask = async (data: Partial<Task>) => {
-    const res = await tasksApiNew.create(data);
-    if (res.success && res.data) { setTasks(prev => [res.data!, ...prev]); setShowForm(false); }
+    const now = new Date().toISOString();
+    addTask({
+      title: data.title,
+      type: data.type,
+      focusLevel: data.focusLevel,
+      deadline: data.deadline,
+      completed: data.completed ?? false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    setShowForm(false);
   };
 
-  const toggleTask = async (t: Task) => {
-    const res = await tasksApiNew.update(t.id, { completed: !t.completed });
-    if (res.success) setTasks(prev => prev.map(x => x.id === t.id ? { ...x, completed: !x.completed } : x));
+  const toggleTask = (t: LegacyTask) => {
+    updateTask(t.id as string, { completed: !t.completed });
   };
 
-  const deleteTask = async (id: string) => {
-    const res = await tasksApiNew.delete(id);
-    if (res.success) setTasks(prev => prev.filter(x => x.id !== id));
+  const handleDeleteTask = (id: string) => {
+    deleteTask(id);
   };
 
   const pendingTasks = tasks.filter(t => !t.completed);
@@ -189,53 +186,53 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
               }}><Plus size={16} /> مهمة جديدة</button>
             </div>
 
-            {showForm && <TaskForm onSave={addTask} onCancel={() => setShowForm(false)} />}
+            {showForm && <TaskForm onSave={handleAddTask} onCancel={() => setShowForm(false)} />}
 
-            {loading ? (
-              <div style={{ textAlign: "center", padding: 60, color: MUTED }}>جاري التحميل...</div>
+            {pendingTasks.length === 0 ? (
+              <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>
+                لا توجد مهام نشطة
+              </div>
             ) : (
-              <>
-                {pendingTasks.map(t => (
+              pendingTasks.map(t => (
+                <div key={t.id} className="glass-card" style={{
+                  display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
+                  background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8,
+                  borderRight: `3px solid ${TYPE_COLORS[t.type] || MUTED}`,
+                  animation: "fadeIn 0.3s",
+                }}>
+                  <button onClick={() => toggleTask(t)} style={{
+                    width: 24, height: 24, borderRadius: 6, border: `2px solid ${BORDER}`,
+                    background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                  }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{t.title}</div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 10, background: (TYPE_COLORS[t.type] || MUTED) + "15", color: TYPE_COLORS[t.type] || MUTED }}>{TYPE_LABELS[t.type] || t.type}</span>
+                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 10, background: ACCENT + "10", color: MUTED }}>{FOCUS_LABELS[t.focusLevel] || t.focusLevel}</span>
+                      {t.deadline && <span style={{ fontSize: 10, color: MUTED, display: "flex", alignItems: "center", gap: 4 }}><Clock size={10} />{t.deadline}</span>}
+                    </div>
+                  </div>
+                  <button onClick={() => handleDeleteTask(t.id as string)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#F8717140", padding: 4 }}><Trash2 size={14} /></button>
+                </div>
+              ))
+            )}
+
+            {doneTasks.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontSize: 12, color: MUTED, marginBottom: 8 }}>مكتملة ({doneTasks.length})</div>
+                {doneTasks.slice(0, 5).map(t => (
                   <div key={t.id} className="glass-card" style={{
-                    display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
-                    background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 8,
-                    borderRight: `3px solid ${TYPE_COLORS[t.type] || MUTED}`,
-                    animation: "fadeIn 0.3s",
+                    display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
+                    background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 6, opacity: 0.5,
                   }}>
                     <button onClick={() => toggleTask(t)} style={{
-                      width: 24, height: 24, borderRadius: 6, border: `2px solid ${BORDER}`,
-                      background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                    }}/>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{t.title}</div>
-                      <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 10, background: (TYPE_COLORS[t.type] || MUTED) + "15", color: TYPE_COLORS[t.type] || MUTED }}>{TYPE_LABELS[t.type] || t.type}</span>
-                        <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 10, background: ACCENT + "10", color: MUTED }}>{FOCUS_LABELS[t.focusLevel] || t.focusLevel}</span>
-                        {t.deadline && <span style={{ fontSize: 10, color: MUTED, display: "flex", alignItems: "center", gap: 4 }}><Clock size={10} />{t.deadline}</span>}
-                      </div>
-                    </div>
-                    <button onClick={() => deleteTask(t.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#F8717140", padding: 4 }}><Trash2 size={14} /></button>
+                      width: 24, height: 24, borderRadius: 6, background: "#10B98120",
+                      border: `2px solid #10B981`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                    }}><Check size={12} color="#10B981" /></button>
+                    <span style={{ fontSize: 13, textDecoration: "line-through", color: MUTED }}>{t.title}</span>
                   </div>
                 ))}
-
-                {doneTasks.length > 0 && (
-                  <div style={{ marginTop: 24 }}>
-                    <div style={{ fontSize: 12, color: MUTED, marginBottom: 8 }}>✅ مكتملة ({doneTasks.length})</div>
-                    {doneTasks.slice(0, 5).map(t => (
-                      <div key={t.id} className="glass-card" style={{
-                        display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
-                        background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 6, opacity: 0.5,
-                      }}>
-                        <button onClick={() => toggleTask(t)} style={{
-                          width: 24, height: 24, borderRadius: 6, background: "#10B98120",
-                          border: `2px solid #10B981`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                        }}><Check size={12} color="#10B981" /></button>
-                        <span style={{ fontSize: 13, textDecoration: "line-through", color: MUTED }}>{t.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
+              </div>
             )}
           </div>
         )}
@@ -243,11 +240,10 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
         {/* ── Projects Tab ── */}
         {tab === "projects" && (
           <div>
-            {loading ? <div style={{ textAlign: "center", padding: 60, color: MUTED }}>جاري التحميل...</div> : (
-              projects.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد مشاريع بعد</div>
-              ) : projects.map(p => (
-                <div key={p.id} className="glass-card" style={{
+            {projects.length === 0 ? (
+              <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد مشاريع بعد</div>
+            ) : projects.map(p => (
+              <div key={p.id} className="glass-card" style={{
                   background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -265,18 +261,17 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
                   <div style={{ fontSize: 11, color: MUTED, marginTop: 6, textAlign: "left" }}>{p.progress}%</div>
                 </div>
               ))
-            )}
+            }
           </div>
         )}
 
         {/* ── Courses Tab ── */}
         {tab === "courses" && (
           <div>
-            {loading ? <div style={{ textAlign: "center", padding: 60, color: MUTED }}>جاري التحميل...</div> : (
-              courses.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد كورسات بعد</div>
-              ) : courses.map(c => (
-                <div key={c.id} className="glass-card" style={{
+            {courses.length === 0 ? (
+              <div style={{ textAlign: "center", padding: 60, color: MUTED, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>لا توجد كورسات بعد</div>
+            ) : courses.map(c => (
+              <div key={c.id} className="glass-card" style={{
                   background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, marginBottom: 12,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -289,7 +284,7 @@ export default function WorkScreen({ onBack }: { onBack: () => void }) {
                   </div>
                 </div>
               ))
-            )}
+            }
           </div>
         )}
       </div>

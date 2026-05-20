@@ -22,7 +22,7 @@ class IO {
   disconnect() {}
   takeRecords() { return []; }
 }
-(window as any).IntersectionObserver = IO;
+window.IntersectionObserver = IO as unknown as typeof IntersectionObserver;
 
 // ResizeObserver mock
 class RO {
@@ -30,7 +30,7 @@ class RO {
   unobserve() {}
   disconnect() {}
 }
-(window as any).ResizeObserver = RO;
+window.ResizeObserver = RO as typeof ResizeObserver;
 
 // scrollTo
-window.scrollTo = vi.fn() as any;
+window.scrollTo = vi.fn() as typeof window.scrollTo;

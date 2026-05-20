@@ -28,15 +28,16 @@ import {
 import { format, differenceInDays, startOfWeek, addDays, isSameDay } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { cn } from '../lib/utils';
+import type { ApiResponse, DailyScore, DashboardIntelligence } from '../types';
 
 const Dashboard: React.FC = () => {
   const { state } = useApp();
-  const [intelligence, setIntelligence] = useState<any>(null);
+  const [intelligence, setIntelligence] = useState<DashboardIntelligence | null>(null);
   const [lifeScore, setLifeScore] = useState<number | null>(null);
 
   useEffect(() => {
-    intelligenceApi.getDashboard().then((r: any) => { if (r.success) setIntelligence(r.data); });
-    scoreApi.getToday().then((r: any) => { if (r.success) setLifeScore(r.data?.total); });
+    intelligenceApi.getDashboard().then((r: ApiResponse<DashboardIntelligence>) => { if (r.success) setIntelligence(r.data ?? null); });
+    scoreApi.getToday().then((r: ApiResponse<DailyScore>) => { if (r.success) setLifeScore(r.data?.total ?? null); });
   }, []);
 
   // Calculate real stats

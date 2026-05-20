@@ -1,13 +1,22 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Clock, MapPin, CheckCircle2, Moon } from "lucide-react";
 
+type SalahTimes = {
+  fajr: string;
+  sunrise?: string;
+  dhuhr: string;
+  asr: string;
+  maghrib: string;
+  isha: string;
+};
+
 const BG = "#020617";
 const CARD_BG = "rgba(15, 23, 42, 0.7)";
 const BORDER_COLOR = "rgba(51, 65, 85, 0.4)";
 const ACCENT = "#8B5CF6"; // Purple for Salah
 
 export default function SalahSystem({ onBack }: { onBack: () => void }) {
-  const [times, setTimes] = useState<any>(null);
+  const [times, setTimes] = useState<SalahTimes | null>(null);
   
   const SystemLogo = () => (
     <div style={{

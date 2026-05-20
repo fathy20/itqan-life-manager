@@ -12,6 +12,7 @@ vi.mock("../../lib/api/index", () => ({
 
 import { adhkarApiNew } from "../../lib/api/index";
 import { useAdhkarNew } from "../useAdhkarNew";
+import type { AdhkarStats, DayAdhkarLog } from "../../types/new";
 
 const mocks = adhkarApiNew as unknown as Record<string, ReturnType<typeof vi.fn>>;
 
@@ -40,8 +41,8 @@ describe("useAdhkarNew", () => {
   });
 
   it("populates data on success", async () => {
-    const todayLog = { date: "2026-05-15", blocks: ["morning"] } as any;
-    const stats = { total: 7 } as any;
+    const todayLog = { date: "2026-05-15", morning: { completed: true }, evening: { completed: false }, afterPrayer: { count: 0 }, sleep: { completed: false }, istighfar: 0, salawat: 0, customCounters: {}, createdAt: "2026-05-15", updatedAt: "2026-05-15" } satisfies DayAdhkarLog;
+    const stats = { completionRate: 100, streak: 7, morningRate: 100, eveningRate: 0, sleepRate: 0, afterPrayerRate: 0, period: "week" } satisfies AdhkarStats;
     mocks.getToday.mockResolvedValue({ success: true, data: todayLog });
     mocks.getStats.mockResolvedValue({ success: true, data: stats });
     const { result } = renderHook(() => useAdhkarNew());
@@ -61,7 +62,7 @@ describe("useAdhkarNew", () => {
   it("optimistically updates counter on success", async () => {
     mocks.getToday.mockResolvedValue({ success: true, data: null });
     mocks.getStats.mockResolvedValue({ success: true, data: null });
-    const updated = { date: "2026-05-15", counters: { tasbih: 33 } } as any;
+    const updated = { date: "2026-05-15", morning: { completed: false }, evening: { completed: false }, afterPrayer: { count: 0 }, sleep: { completed: false }, istighfar: 0, salawat: 0, customCounters: { tasbih: 33 }, createdAt: "2026-05-15", updatedAt: "2026-05-15" } satisfies DayAdhkarLog;
     mocks.updateCounter.mockResolvedValue({ success: true, data: updated });
 
     const { result } = renderHook(() => useAdhkarNew());

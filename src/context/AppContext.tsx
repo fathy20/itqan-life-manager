@@ -77,10 +77,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     getDoc(doc(db, 'users', currentUser.uid)).then((snap) => {
       if (snap.exists()) {
         skipSave.current = true;
-        setState(prev => ({ ...EMPTY_STATE, ...snap.data() as AppState, profile: { ...EMPTY_STATE.profile, ...(snap.data() as AppState).profile } }));
+        const savedState = snap.data() as AppState;
+        const onboardingCompleted =
+          savedState.profile?.onboardingCompleted ?? Boolean(savedState.profile?.name);
+
+        setState(() => ({
+          ...EMPTY_STATE,
+          ...savedState,
+          profile: {
+            ...EMPTY_STATE.profile,
+            ...savedState.profile,
+            onboardingCompleted,
+          },
+        }));
       } else if (currentUser.displayName) {
-        // New user - set name from auth
-        setState(prev => ({ ...EMPTY_STATE, profile: { ...EMPTY_STATE.profile, name: currentUser.displayName || '' } }));
+        skipSave.current = true;
+        setState(() => ({
+          ...EMPTY_STATE,
+          profile: {
+            ...EMPTY_STATE.profile,
+            name: currentUser.displayName || '',
+            onboardingCompleted: false,
+          },
+        }));
       }
       initialized.current = true;
     }).catch(() => { initialized.current = true; });

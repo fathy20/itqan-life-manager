@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { auth } from '../lib/firebase';
 import { Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -44,8 +45,9 @@ export default function AuthScreen() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-    } catch (err: any) {
-      setErrorMsg(ERROR_MESSAGES[err.code] || 'حدث خطأ، حاول تاني');
+    } catch (err: unknown) {
+      const code = err instanceof FirebaseError ? err.code : 'unknown';
+      setErrorMsg(ERROR_MESSAGES[code] || 'حدث خطأ، حاول تاني');
     } finally {
       setLoading(false);
     }

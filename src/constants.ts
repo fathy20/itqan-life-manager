@@ -10,6 +10,7 @@ export const EMPTY_STATE: AppState = {
     level: '',
     semester: '',
     role: '',
+    onboardingCompleted: false,
     timezone: 'Africa/Cairo',
     locale: 'ar-EG',
   },
