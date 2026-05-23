@@ -1,183 +1,232 @@
-/**
- * StudyScreen — Subjects & Exam tracking
- * Connected to: subjectsApiNew
- */
-import { useState, useEffect, useCallback } from "react";
+import { useMemo, useState } from "react";
+import { AlertTriangle, ArrowLeft, Calendar, Check, GraduationCap, Plus, Trash2, TrendingUp } from "lucide-react";
+import { useApp } from "../context/AppContext";
+import type { LegacySubject } from "../types";
 import {
-  GraduationCap, ArrowLeft, Plus, BookOpen, Calendar, Trash2,
-  AlertTriangle, Check, TrendingUp,
-} from "lucide-react";
-import { subjectsApiNew } from "../lib/api/index";
-import type { Subject } from "../types/new";
+  dailyLectureLoad,
+  daysUntilExam,
+  difficultyColors,
+  difficultyLabels,
+  nextCompletedLectures,
+  normalizeDifficulty,
+  remainingLectures,
+  studyRisk,
+  subjectProgress,
+  todayIso,
+} from "../lib/modules/study";
 
-const BG = "#020617";
-const CARD = "rgba(15, 23, 42, 0.7)";
-const BORDER = "rgba(51, 65, 85, 0.4)";
-const TEXT = "#C0C8D8";
-const MUTED = "#3D5A80";
-const ACCENT = "#8B5CF6";
-
-const DIFFICULTY_COLORS = ["", "#10B981", "#34D399", "#FBBF24", "#FB923C", "#F87171"];
-const DIFFICULTY_LABELS = ["", "سهل جداً", "سهل", "متوسط", "صعب", "صعب جداً"];
-
-function SubjectForm({ onSave, onCancel }: { onSave: (s: Partial<Subject>) => void; onCancel: () => void }) {
+function SubjectForm({
+  onSave,
+  onCancel,
+}: {
+  onSave: (subject: Omit<LegacySubject, "id">) => void;
+  onCancel: () => void;
+}) {
   const [name, setName] = useState("");
-  const [examDate, setExamDate] = useState("");
+  const [examDate, setExamDate] = useState(todayIso());
+  const [totalLectures, setTotalLectures] = useState("5");
   const [difficulty, setDifficulty] = useState(3);
-  const [totalLectures, setTotalLectures] = useState("");
+  const [error, setError] = useState("");
+
+  const submit = () => {
+    const total = Number(totalLectures);
+    if (!name.trim()) {
+      setError("اكتب اسم المادة الأول.");
+      return;
+    }
+    if (!examDate) {
+      setError("اختار تاريخ الامتحان.");
+      return;
+    }
+    if (!Number.isFinite(total) || total < 1) {
+      setError("عدد المحاضرات لازم يكون رقم أكبر من صفر.");
+      return;
+    }
+
+    onSave({
+      name: name.trim(),
+      examDate,
+      difficulty,
+      totalLectures: total,
+      completedLectures: 0,
+      color: difficultyColors[difficulty],
+    });
+  };
 
   return (
-    <div className="glass-card" style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
-      <input value={name} onChange={e => setName(e.target.value)} placeholder="اسم المادة..."
-        style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontSize: 16, color: TEXT, fontFamily: "'Noto Kufi Arabic', sans-serif", marginBottom: 14 }} />
-      <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 11, color: MUTED, display: "block", marginBottom: 4 }}>تاريخ الامتحان</label>
-          <input type="date" value={examDate} onChange={e => setExamDate(e.target.value)}
-            style={{ width: "100%", background: BG, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px", color: TEXT, fontSize: 13 }} />
+    <div className="glass-card mb-5 p-5">
+      <div className="mb-4">
+        <label className="mb-2 block text-xs font-bold text-slate-400">اسم المادة</label>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: Internet Programming" className="field-input" autoFocus />
+      </div>
+
+      <div className="mb-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-2 block text-xs font-bold text-slate-400">تاريخ الامتحان</label>
+          <input type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)} className="field-input" />
         </div>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 11, color: MUTED, display: "block", marginBottom: 4 }}>عدد المحاضرات</label>
-          <input type="number" value={totalLectures} onChange={e => setTotalLectures(e.target.value)} placeholder="0"
-            style={{ width: "100%", background: BG, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px", color: TEXT, fontSize: 13 }} />
+        <div>
+          <label className="mb-2 block text-xs font-bold text-slate-400">عدد المحاضرات</label>
+          <input type="number" min={1} value={totalLectures} onChange={(e) => setTotalLectures(e.target.value)} className="field-input" />
         </div>
       </div>
-      <div style={{ marginBottom: 14 }}>
-        <label style={{ fontSize: 11, color: MUTED, display: "block", marginBottom: 6 }}>الصعوبة</label>
-        <div style={{ display: "flex", gap: 6 }}>
-          {[1, 2, 3, 4, 5].map(d => (
-            <button key={d} onClick={() => setDifficulty(d)} style={{
-              flex: 1, padding: "6px", borderRadius: 8, fontSize: 11, cursor: "pointer",
-              background: difficulty === d ? DIFFICULTY_COLORS[d] + "20" : "transparent",
-              border: `1px solid ${difficulty === d ? DIFFICULTY_COLORS[d] : BORDER}`,
-              color: difficulty === d ? DIFFICULTY_COLORS[d] : MUTED,
-            }}>{DIFFICULTY_LABELS[d]}</button>
+
+      <div className="mb-4">
+        <label className="mb-2 block text-xs font-bold text-slate-400">الصعوبة</label>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {[1, 2, 3, 4, 5].map((level) => (
+            <button
+              type="button"
+              key={level}
+              onClick={() => setDifficulty(level)}
+              className="rounded-lg border px-3 py-2 text-xs font-bold transition"
+              style={{
+                borderColor: difficulty === level ? difficultyColors[level] : "rgba(255,255,255,0.10)",
+                color: difficulty === level ? difficultyColors[level] : "#94a3b8",
+                background: difficulty === level ? `${difficultyColors[level]}18` : "rgba(255,255,255,0.02)",
+              }}
+            >
+              {difficultyLabels[level]}
+            </button>
           ))}
         </div>
       </div>
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-        <button onClick={onCancel} style={{ padding: "8px 16px", borderRadius: 8, background: "transparent", border: `1px solid ${BORDER}`, color: MUTED, cursor: "pointer", fontSize: 13 }}>إلغاء</button>
-        <button onClick={() => { if (name.trim() && examDate) onSave({ name, examDate, difficulty, totalLectures: parseInt(totalLectures) || 0, completedLectures: 0 }); }}
-          style={{ padding: "8px 20px", borderRadius: 8, background: ACCENT + "20", border: `1px solid ${ACCENT}40`, color: ACCENT, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>إضافة</button>
+
+      {error && <div className="mb-4 rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-300">{error}</div>}
+
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="rounded-lg border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 hover:bg-white/[0.04]">
+          إلغاء
+        </button>
+        <button type="button" onClick={submit} className="inline-flex items-center gap-2 rounded-lg bg-violet-500 px-4 py-2 text-sm font-black text-white hover:bg-violet-400">
+          <Plus size={16} />
+          إضافة
+        </button>
       </div>
     </div>
   );
 }
 
 export default function StudyScreen({ onBack }: { onBack: () => void }) {
-
-  const SystemLogo = () => (
-    <div style={{
-      width: 40, height: 40, borderRadius: "12px",
-      background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT}80)`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      boxShadow: `0 8px 16px ${ACCENT}30`
-    }}>
-      <GraduationCap color="white" size={20} />
-    </div>
-  );
-
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { state, addSubject, updateSubject, deleteSubject } = useApp();
   const [showForm, setShowForm] = useState(false);
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    const res = await subjectsApiNew.list();
-    if (res.success && res.data) setSubjects(res.data);
-    setLoading(false);
-  }, []);
+  const subjects = useMemo(() => state.subjects ?? [], [state.subjects]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
-
-  const addSubject = async (data: Partial<Subject>) => {
-    const res = await subjectsApiNew.create(data);
-    if (res.success && res.data) { setSubjects(prev => [res.data!, ...prev]); setShowForm(false); }
+  const completeLecture = (subject: LegacySubject) => {
+    updateSubject(subject.id, { completedLectures: nextCompletedLectures(subject, 1) });
   };
 
-  const incrementLecture = async (s: Subject) => {
-    if (s.completedLectures >= s.totalLectures) return;
-    const res = await subjectsApiNew.update(s.id as string, { completedLectures: s.completedLectures + 1 });
-    if (res.success) setSubjects(prev => prev.map(x => x.id === s.id ? { ...x, completedLectures: x.completedLectures + 1 } : x));
+  const undoLecture = (subject: LegacySubject) => {
+    updateSubject(subject.id, { completedLectures: nextCompletedLectures(subject, -1) });
   };
-
-  const deleteSubject = async (id: string) => {
-    const res = await subjectsApiNew.delete(id);
-    if (res.success) setSubjects(prev => prev.filter(x => x.id !== id));
-  };
-
-  const daysLeft = (examDate: string) => Math.max(0, Math.ceil((new Date(examDate).getTime() - Date.now()) / 86400000));
 
   return (
-    <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
-      <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-      <style>{`@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }`}</style>
+    <div dir="rtl" className="min-h-screen bg-background text-slate-100">
+      <header className="glass-panel sticky top-0 z-20 flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <button type="button" onClick={onBack} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 text-sm font-bold text-slate-300 hover:bg-white/[0.04]">
+          <ArrowLeft size={17} />
+          الرئيسية
+        </button>
+        <div className="flex items-center gap-3">
+          <GraduationCap size={22} className="text-violet-300" />
+          <h1 className="text-xl font-black">الدراسة</h1>
+        </div>
+      </header>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 24px", borderBottom: `1px solid ${BORDER}`, position: "sticky", top: 0, background: "rgba(2, 6, 23, 0.8)", backdropFilter: "blur(20px)", zIndex: 10 }}>
-        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 8, background: "transparent", border: `1px solid ${BORDER}`, color: MUTED, cursor: "pointer", fontSize: 13 }}><ArrowLeft size={16} /> الرئيسية</button>
-        <div style={{ flex: 1 }} />
-        <GraduationCap size={20} color={ACCENT} />
-        <span style={{ fontSize: 18, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>الدراسة</span>
-      </div>
-
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-          <span style={{ fontSize: 13, color: MUTED }}>{subjects.length} مادة</span>
-          <button onClick={() => setShowForm(!showForm)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 10, background: ACCENT + "15", border: `1px solid ${ACCENT}30`, color: ACCENT, cursor: "pointer", fontSize: 13 }}><Plus size={16} /> مادة جديدة</button>
+      <main className="mx-auto max-w-5xl px-5 py-7">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <div>
+            <div className="text-sm font-bold text-slate-400">{subjects.length} مادة</div>
+            <p className="mt-1 text-xs text-slate-500">تابع المواد، المحاضرات، وضغط الامتحانات.</p>
+          </div>
+          <button type="button" onClick={() => setShowForm((v) => !v)} className="inline-flex items-center gap-2 rounded-lg border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-sm font-black text-violet-300 hover:bg-violet-400/15">
+            <Plus size={17} />
+            مادة جديدة
+          </button>
         </div>
 
-        {showForm && <SubjectForm onSave={addSubject} onCancel={() => setShowForm(false)} />}
+        {showForm && <SubjectForm onSave={(subject) => { addSubject(subject); setShowForm(false); }} onCancel={() => setShowForm(false)} />}
 
-        {loading ? <div style={{ textAlign: "center", padding: 60, color: MUTED }}>جاري التحميل...</div> :
-          subjects.map(s => {
-            const progress = s.totalLectures > 0 ? Math.round((s.completedLectures / s.totalLectures) * 100) : 0;
-            const days = daysLeft(s.examDate);
-            const remaining = s.totalLectures - s.completedLectures;
-            const dailyLoad = days > 0 ? Math.ceil(remaining / days) : remaining;
-            const risk = dailyLoad > 4 ? "danger" : dailyLoad > 2 ? "warning" : "safe";
+        {subjects.length === 0 ? (
+          <div className="glass-card grid min-h-[260px] place-items-center p-8 text-center">
+            <div>
+              <GraduationCap className="mx-auto mb-4 text-violet-300" size={42} />
+              <h2 className="text-xl font-black">لسه مفيش مواد</h2>
+              <p className="mt-2 text-sm text-slate-400">اضغط "مادة جديدة" وابدأ بخطة امتحانات واضحة.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {subjects.map((subject) => {
+              const total = subject.totalLectures ?? 0;
+              const completed = subject.completedLectures ?? 0;
+              const progress = subjectProgress(subject);
+              const days = daysUntilExam(subject.examDate);
+              const remaining = remainingLectures(subject);
+              const dailyLoad = dailyLectureLoad(subject);
+              const difficulty = normalizeDifficulty(subject.difficulty);
+              const risk = studyRisk(subject);
 
-            return (
-              <div key={s.id} className="glass-card" style={{
-                background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(12px)", border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 14,
-                borderRight: `3px solid ${DIFFICULTY_COLORS[s.difficulty] || ACCENT}`,
-                animation: "fadeIn 0.3s",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 17, fontWeight: 700, fontFamily: "'Noto Kufi Arabic', sans-serif" }}>{s.name}</div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 10, background: DIFFICULTY_COLORS[s.difficulty] + "15", color: DIFFICULTY_COLORS[s.difficulty] }}>{DIFFICULTY_LABELS[s.difficulty]}</span>
-                      <span style={{ fontSize: 10, display: "flex", alignItems: "center", gap: 4, color: MUTED }}><Calendar size={10} />{s.examDate}</span>
+              return (
+                <article key={subject.id} className="glass-card p-5" style={{ borderRight: `4px solid ${difficultyColors[difficulty]}` }}>
+                  <div className="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-black">{subject.name}</h2>
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
+                        <span className="rounded-md px-2 py-1" style={{ color: difficultyColors[difficulty], background: `${difficultyColors[difficulty]}14` }}>
+                          {difficultyLabels[difficulty]}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-1">
+                          <Calendar size={13} />
+                          {subject.examDate || "بدون تاريخ"}
+                        </span>
+                        {risk !== "safe" && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-red-400/10 px-2 py-1 text-red-300">
+                            <AlertTriangle size={13} />
+                            ضغط عالي
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => deleteSubject(subject.id)} className="rounded-lg p-2 text-red-300/70 hover:bg-red-400/10 hover:text-red-300" aria-label="حذف المادة">
+                      <Trash2 size={17} />
+                    </button>
+                  </div>
+
+                  <div className="mb-3 flex items-center gap-3">
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+                      <div className="h-full rounded-full bg-violet-400 transition-all" style={{ width: `${progress}%` }} />
+                    </div>
+                    <span className="w-12 text-left font-mono text-sm font-black text-violet-300">{progress}%</span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="text-sm text-slate-400">
+                      {completed}/{total} محاضرة · {days} يوم · {dailyLoad} محاضرة/يوم
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => undoLecture(subject)} disabled={completed <= 0} className="rounded-lg border border-white/10 px-3 py-2 text-sm font-bold text-slate-300 hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-40">
+                        -1
+                      </button>
+                      <button type="button" onClick={() => completeLecture(subject)} disabled={completed >= total} className="inline-flex items-center gap-2 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-sm font-black text-violet-300 hover:bg-violet-400/15 disabled:cursor-not-allowed disabled:opacity-40">
+                        <TrendingUp size={15} />
+                        +1
+                      </button>
+                      {completed >= total && (
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-400/10 px-3 py-2 text-sm font-bold text-emerald-300">
+                          <Check size={15} />
+                          مكتملة
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {risk === "danger" && <AlertTriangle size={18} color="#F87171" />}
-                    <button onClick={() => deleteSubject(s.id as string)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#F8717140" }}><Trash2 size={14} /></button>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                  <div style={{ flex: 1, height: 8, background: BORDER, borderRadius: 4, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${progress}%`, background: ACCENT, borderRadius: 4, transition: "width 0.5s" }} />
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: ACCENT, fontFamily: "'JetBrains Mono', monospace", minWidth: 40, textAlign: "center" }}>{progress}%</span>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontSize: 12, color: MUTED }}>{s.completedLectures}/{s.totalLectures} محاضرة · {days} يوم · {dailyLoad}/يوم</div>
-                  <button onClick={() => incrementLecture(s)} disabled={s.completedLectures >= s.totalLectures}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 4, padding: "6px 14px",
-                      borderRadius: 8, fontSize: 12, cursor: "pointer",
-                      background: ACCENT + "15", border: `1px solid ${ACCENT}30`, color: ACCENT,
-                      opacity: s.completedLectures >= s.totalLectures ? 0.3 : 1,
-                    }}><TrendingUp size={14} /> +1</button>
-                </div>
-              </div>
-            );
-          })
-        }
-      </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

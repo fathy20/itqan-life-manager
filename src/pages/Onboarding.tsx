@@ -1,293 +1,341 @@
-import React, { useState } from 'react';
-import { auth } from '../lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
-import { useApp } from '../context/AppContext';
-import { db } from '../lib/firebase';
-import type { AppState } from '../types';
-import type { LegacyCourse, LegacySubject } from '../types';
-import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Check, Plus, Trash2, Sparkles } from 'lucide-react';
+import { useState } from "react";
+import type { ReactNode } from "react";
+import { signOut } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { Check, ChevronLeft, ChevronRight, LogOut, Plus, Sparkles, Trash2 } from "lucide-react";
+import { auth, db } from "../lib/firebase";
+import { useApp } from "../context/AppContext";
+import type { AppState, LegacyCourse, LegacySubject } from "../types";
 
-const BG = "#000E30"; const CARD = "#071A3A"; const BORDER = "#0C2550";
-const CYAN = "#08A7E7"; const MUTED = "#3D5A80"; const TEXT = "#C0C8D8"; const BRIGHT = "#E8EBF0";
-const ar = "'Noto Kufi Arabic', sans-serif";
+const steps = ["الروحانيات", "معلوماتك", "المواد", "التعلم", "العادات"];
 
-const STEP_LABELS = ['الروحانيات', 'معلوماتك', 'المواد', 'العمل', 'العادات'];
-
-const DEFAULT_HABITS = [
-  { name: 'Wake for Fajr', nameAr: 'الاستيقاظ للفجر', selected: true },
-  { name: 'Morning adhkar', nameAr: 'أذكار الصباح', selected: true },
-  { name: 'Read Quran', nameAr: 'قراءة القرآن', selected: true },
-  { name: 'Exercise', nameAr: 'رياضة', selected: false },
-  { name: 'Sleep before 11', nameAr: 'النوم قبل 11', selected: true },
-  { name: 'Drink water', nameAr: 'شرب الماء', selected: true },
-  { name: 'Siwak', nameAr: 'السواك', selected: false },
+const defaultHabits = [
+  { name: "Wake for Fajr", nameAr: "الاستيقاظ للفجر", selected: true },
+  { name: "Morning adhkar", nameAr: "أذكار الصباح", selected: true },
+  { name: "Read Quran", nameAr: "قراءة القرآن", selected: true },
+  { name: "Exercise", nameAr: "رياضة", selected: false },
+  { name: "Sleep before 11", nameAr: "النوم قبل 11", selected: true },
+  { name: "Drink water", nameAr: "شرب الماء", selected: true },
+  { name: "Siwak", nameAr: "السواك", selected: false },
 ];
 
 export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   const { state, setState } = useApp();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Step 0
-  const [prayerHabit, setPrayerHabit] = useState('');
-  const [quranHabit, setQuranHabit] = useState('');
-  const [adhkarHabit, setAdhkarHabit] = useState('');
+  const [prayerHabit, setPrayerHabit] = useState("في الغالب");
+  const [quranHabit, setQuranHabit] = useState("عاوز أبدأ");
+  const [adhkarHabit, setAdhkarHabit] = useState("أحيانًا");
 
-  // Step 1
-  const [name, setName] = useState(auth.currentUser?.displayName || '');
-  const [university, setUniversity] = useState('');
-  const [role, setRole] = useState('');
+  const [name, setName] = useState(auth.currentUser?.displayName || "");
+  const [university, setUniversity] = useState("");
+  const [role, setRole] = useState("student");
 
-  // Step 2
-  const [subjects, setSubjects] = useState<Omit<LegacySubject, 'id'>[]>([]);
-  const [subForm, setSubForm] = useState({ name: '', examDate: '', difficulty: 3, totalLectures: 12 });
+  const [subjects, setSubjects] = useState<Omit<LegacySubject, "id">[]>([]);
+  const [subjectForm, setSubjectForm] = useState({ name: "", examDate: "", difficulty: 3, totalLectures: 12 });
 
-  // Step 3
-  const [courses, setCourses] = useState<Omit<LegacyCourse, 'id' | 'progress'>[]>([]);
-  const [courseForm, setCourseForm] = useState({ name: '', platform: '', totalLessons: 20 });
+  const [courses, setCourses] = useState<Omit<LegacyCourse, "id" | "progress">[]>([]);
+  const [courseForm, setCourseForm] = useState({ name: "", platform: "", totalLessons: 20 });
 
-  // Step 4
-  const [habits, setHabits] = useState(DEFAULT_HABITS);
-  const [customHabit, setCustomHabit] = useState('');
+  const [habits, setHabits] = useState(defaultHabits);
+  const [customHabit, setCustomHabit] = useState("");
 
-  const canNext = () => {
-    if (step === 0) return prayerHabit && quranHabit && adhkarHabit;
-    if (step === 1) return name.trim() && role;
-    return true;
+  const canContinue = step !== 1 || Boolean(name.trim() && role);
+
+  const next = () => {
+    setError("");
+    if (!canContinue) {
+      setError("اكتب اسمك واختار دورك الحالي عشان نكمل.");
+      return;
+    }
+    if (step < steps.length - 1) {
+      setStep((current) => current + 1);
+      return;
+    }
+    void finish();
   };
 
-  const handleFinish = async () => {
+  const finish = async () => {
     setLoading(true);
-    try {
-      const uid = auth.currentUser?.uid;
-      if (!uid) throw new Error('Missing authenticated user');
+    setError("");
+    const uid = auth.currentUser?.uid;
+    const genId = () => Math.random().toString(36).slice(2, 11);
 
-      const genId = () => Math.random().toString(36).substr(2, 9);
+    const nextState: AppState = {
+      ...state,
+      profile: {
+        ...state.profile,
+        name: name.trim() || auth.currentUser?.displayName || "مستخدم إتقان",
+        university,
+        role,
+        onboardingCompleted: true,
+      },
+      subjects: [
+        ...state.subjects,
+        ...subjects.map((subject) => ({
+          ...subject,
+          id: genId(),
+          completedLectures: subject.completedLectures ?? 0,
+        })),
+      ],
+      courses: [
+        ...state.courses,
+        ...courses.map((course) => ({
+          ...course,
+          id: genId(),
+          completedLessons: course.completedLessons ?? 0,
+          progress: 0,
+        })),
+      ],
+      habits: [
+        ...state.habits,
+        ...habits.filter((habit) => habit.selected).map((habit) => ({
+          id: genId(),
+          name: habit.nameAr || habit.name,
+          streak: 0,
+          completedDates: [],
+        })),
+      ],
+    };
 
-      const nextState: AppState = {
-        ...state,
-        profile: {
-          ...state.profile,
-          name: name,
-          university,
-          role,
-          onboardingCompleted: true,
-        },
-        subjects: [
-          ...state.subjects,
-          ...subjects.map(s => ({ ...s, id: genId(), completedLectures: 0 }))
-        ],
-        courses: [
-          ...state.courses,
-          ...courses.map(c => ({ ...c, id: genId(), completedLessons: 0, progress: 0 }))
-        ],
-        habits: [
-          ...state.habits,
-          ...habits.filter(h => h.selected).map(h => ({
-            id: genId(),
-            name: h.nameAr || h.name,
-            streak: 0,
-            completedDates: []
-          }))
-        ]
-      };
+    setState(nextState);
+    localStorage.setItem("itqan_state", JSON.stringify(nextState));
 
-      setState(nextState);
-      localStorage.setItem('itqan_state', JSON.stringify(nextState));
-      await setDoc(doc(db, 'users', uid), nextState, { merge: true });
-
-      onComplete();
-    } catch (err) {
-      console.error('Onboarding error:', err);
-    } finally {
-      setLoading(false);
+    if (uid) {
+      setDoc(doc(db, "users", uid), nextState, { merge: true }).catch((err) => {
+        console.warn("Onboarding saved locally but Firestore sync failed:", err);
+      });
     }
+
+    setLoading(false);
+    onComplete();
+  };
+
+  const addSubject = () => {
+    if (!subjectForm.name.trim()) {
+      setError("اكتب اسم المادة قبل الإضافة.");
+      return;
+    }
+    setSubjects((current) => [...current, { ...subjectForm, name: subjectForm.name.trim(), completedLectures: 0 }]);
+    setSubjectForm({ name: "", examDate: "", difficulty: 3, totalLectures: 12 });
+    setError("");
+  };
+
+  const addCourse = () => {
+    if (!courseForm.name.trim()) {
+      setError("اكتب اسم الكورس قبل الإضافة.");
+      return;
+    }
+    setCourses((current) => [...current, { ...courseForm, name: courseForm.name.trim(), platform: courseForm.platform.trim() || "Self-study", completedLessons: 0 }]);
+    setCourseForm({ name: "", platform: "", totalLessons: 20 });
+    setError("");
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-      <div style={{ width: '100%', maxWidth: 560 }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: `${CYAN}15`, border: `1px solid ${CYAN}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-            <Sparkles size={22} color={CYAN} />
+    <div dir="rtl" className="min-h-screen bg-background px-5 py-8 text-slate-100">
+      <div className="mx-auto max-w-3xl">
+        <header className="mb-8 text-center">
+          <div className="mb-4 flex justify-start">
+            <button type="button" onClick={() => signOut(auth)} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-bold text-slate-300 hover:bg-white/[0.06]">
+              <LogOut size={16} />
+              رجوع لتسجيل الدخول
+            </button>
           </div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: BRIGHT, fontFamily: ar, margin: 0 }}>إعداد حسابك</h1>
-          <p style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>خطوة {step + 1} من {STEP_LABELS.length}</p>
-        </div>
+          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-lg border border-sky-400/25 bg-sky-400/10 text-sky-300">
+            <Sparkles size={25} />
+          </div>
+          <h1 className="text-3xl font-black">إعداد حسابك</h1>
+          <p className="mt-2 text-sm text-slate-500">خطوة {step + 1} من {steps.length}</p>
+        </header>
 
-        {/* Progress */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 32 }}>
-          {STEP_LABELS.map((label, i) => (
-            <div key={i} style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ height: 4, borderRadius: 2, background: i <= step ? CYAN : BORDER, transition: 'background 0.3s', marginBottom: 4 }} />
-              <span style={{ fontSize: 9, color: i === step ? CYAN : MUTED, fontFamily: ar }}>{label}</span>
-            </div>
+        <div className="mb-7 grid grid-cols-5 gap-2">
+          {steps.map((label, index) => (
+            <button type="button" key={label} onClick={() => index <= step && setStep(index)} className="text-center">
+              <div className={`mb-2 h-1 rounded-full ${index <= step ? "bg-sky-400" : "bg-white/10"}`} />
+              <span className={`text-[10px] font-bold ${index === step ? "text-sky-300" : "text-slate-600"}`}>{label}</span>
+            </button>
           ))}
         </div>
 
-        {/* Step Content */}
-        <AnimatePresence mode="wait">
-          <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}
-            style={{ background: CARD, borderRadius: 16, border: `1px solid ${BORDER}`, padding: 28 }}>
+        <section className="glass-card p-6">
+          {step === 0 && (
+            <div className="space-y-6">
+              <StepTitle title="الجانب الروحاني" text="اختيارات سريعة عشان نبدأ بخطة مناسبة ليك." />
+              <ChoiceGroup label="علاقتك مع الصلاة؟" value={prayerHabit} onChange={setPrayerHabit} options={["دائمًا في وقتها", "في الغالب", "بشتغل عليها"]} />
+              <ChoiceGroup label="عادتك مع القرآن؟" value={quranHabit} onChange={setQuranHabit} options={["يوميًا", "أسبوعيًا", "عاوز أبدأ"]} />
+              <ChoiceGroup label="عادتك مع الأذكار؟" value={adhkarHabit} onChange={setAdhkarHabit} options={["يوميًا", "أحيانًا", "عاوز أبدأ"]} />
+            </div>
+          )}
 
-            {/* Step 0: Spiritual */}
-            {step === 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: BRIGHT, fontFamily: ar, margin: 0 }}>الجانب الروحاني</h2>
-                {[
-                  { label: 'عادتك مع الصلاة؟', state: prayerHabit, set: setPrayerHabit, options: ['دايماً في وقتها', 'في الغالب', 'بشتغل عليها'] },
-                  { label: 'عادتك مع القرآن؟', state: quranHabit, set: setQuranHabit, options: ['يومياً', 'أسبوعياً', 'عاوز أبدأ'] },
-                  { label: 'عادتك مع الأذكار؟', state: adhkarHabit, set: setAdhkarHabit, options: ['يومياً', 'أحياناً', 'عاوز أبدأ'] },
-                ].map(q => (
-                  <div key={q.label}>
-                    <p style={{ fontSize: 13, color: TEXT, fontFamily: ar, marginBottom: 10 }}>{q.label}</p>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {q.options.map(opt => (
-                        <button key={opt} type="button" onClick={() => q.set(opt)} style={{
-                          padding: '8px 16px', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontFamily: ar,
-                          background: q.state === opt ? `${CYAN}20` : 'transparent',
-                          border: `1px solid ${q.state === opt ? CYAN : BORDER}`,
-                          color: q.state === opt ? CYAN : MUTED, transition: 'all 0.2s',
-                        }}>{opt}</button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+          {step === 1 && (
+            <div className="space-y-5">
+              <StepTitle title="معلوماتك الشخصية" text="الاسم والدور بيساعدوا إتقان يرتب الشاشات حسب يومك." />
+              <Field label="اسمك">
+                <input className="field-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: فتحي" autoFocus />
+              </Field>
+              <Field label="الجامعة أو الجهة">
+                <input className="field-input" value={university} onChange={(e) => setUniversity(e.target.value)} placeholder="اختياري" />
+              </Field>
+              <ChoiceGroup label="دورك الحالي" value={role} onChange={setRole} options={[["student", "طالب"], ["employee", "موظف"], ["freelancer", "فريلانسر"]]} />
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-5">
+              <StepTitle title="المواد الدراسية" text="الخطوة دي اختيارية. تقدر تضيف المواد دلوقتي أو بعدين من شاشة الدراسة." />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input className="field-input sm:col-span-2" value={subjectForm.name} onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })} placeholder="اسم المادة" />
+                <input className="field-input" type="date" value={subjectForm.examDate} onChange={(e) => setSubjectForm({ ...subjectForm, examDate: e.target.value })} />
+                <input className="field-input" type="number" min={1} value={subjectForm.totalLectures} onChange={(e) => setSubjectForm({ ...subjectForm, totalLectures: Number(e.target.value) || 1 })} placeholder="عدد المحاضرات" />
               </div>
-            )}
+              <AddButton onClick={addSubject}>إضافة مادة</AddButton>
+              <List items={subjects.map((subject) => subject.name)} onDelete={(index) => setSubjects((current) => current.filter((_, i) => i !== index))} />
+            </div>
+          )}
 
-            {/* Step 1: Personal Info */}
-            {step === 1 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: BRIGHT, fontFamily: ar, margin: 0 }}>معلوماتك الشخصية</h2>
-                {[
-                  { label: 'اسمك', value: name, set: setName, placeholder: 'مثال: فتحي' },
-                  { label: 'الجامعة (اختياري)', value: university, set: setUniversity, placeholder: 'مثال: جامعة القاهرة' },
-                ].map(f => (
-                  <div key={f.label}>
-                    <label style={{ fontSize: 11, color: MUTED, display: 'block', marginBottom: 6, fontFamily: ar }}>{f.label}</label>
-                    <input value={f.value} onChange={e => f.set(e.target.value)} placeholder={f.placeholder} style={inputStyle} />
-                  </div>
-                ))}
-                <div>
-                  <label style={{ fontSize: 11, color: MUTED, display: 'block', marginBottom: 8, fontFamily: ar }}>دورك الحالي</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {[{ id: 'student', label: 'طالب' }, { id: 'employee', label: 'موظف' }, { id: 'freelancer', label: 'فريلانسر' }].map(r => (
-                      <button key={r.id} type="button" onClick={() => setRole(r.id)} style={{
-                        flex: 1, padding: '10px', borderRadius: 8, fontSize: 13, cursor: 'pointer', fontFamily: ar,
-                        background: role === r.id ? `${CYAN}20` : 'transparent',
-                        border: `1px solid ${role === r.id ? CYAN : BORDER}`,
-                        color: role === r.id ? CYAN : MUTED,
-                      }}>{r.label}</button>
-                    ))}
-                  </div>
-                </div>
+          {step === 3 && (
+            <div className="space-y-5">
+              <StepTitle title="التعلم والكورسات" text="ضيف الكورسات المهمة، أو سيبها فاضية وكمل." />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input className="field-input" value={courseForm.name} onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })} placeholder="اسم الكورس" />
+                <input className="field-input" value={courseForm.platform} onChange={(e) => setCourseForm({ ...courseForm, platform: e.target.value })} placeholder="المنصة" />
               </div>
-            )}
+              <AddButton onClick={addCourse}>إضافة كورس</AddButton>
+              <List items={courses.map((course) => `${course.name} · ${course.platform || "Self-study"}`)} onDelete={(index) => setCourses((current) => current.filter((_, i) => i !== index))} />
+            </div>
+          )}
 
-            {/* Step 2: Subjects */}
-            {step === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: BRIGHT, fontFamily: ar, margin: 0 }}>المواد الدراسية</h2>
-                <p style={{ fontSize: 12, color: MUTED, margin: 0, fontFamily: ar }}>أضف مواد الترم الحالي (اختياري)</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div style={{ gridColumn: '1/-1' }}>
-                    <input value={subForm.name} onChange={e => setSubForm({ ...subForm, name: e.target.value })} placeholder="اسم المادة" style={inputStyle} />
-                  </div>
-                  <input type="date" value={subForm.examDate} onChange={e => setSubForm({ ...subForm, examDate: e.target.value })} style={inputStyle} />
-                  <input type="number" min="1" value={subForm.totalLectures} onChange={e => setSubForm({ ...subForm, totalLectures: +e.target.value })} placeholder="عدد المحاضرات" style={inputStyle} />
-                </div>
-                <button type="button" onClick={() => { if (!subForm.name.trim()) return; setSubjects([...subjects, { ...subForm, difficulty: subForm.difficulty }]); setSubForm({ name: '', examDate: '', difficulty: 3, totalLectures: 12 }); }} style={{ padding: '10px', borderRadius: 8, background: `${CYAN}15`, border: `1px solid ${CYAN}25`, color: CYAN, cursor: 'pointer', fontSize: 13, fontFamily: ar, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Plus size={14} /> إضافة مادة
-                </button>
-                {subjects.map((s, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, background: BG, border: `1px solid ${BORDER}` }}>
-                    <span style={{ fontSize: 13, color: TEXT, fontFamily: ar }}>{s.name}</span>
-                    <button type="button" onClick={() => setSubjects(subjects.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED }}><Trash2 size={14} /></button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Step 3: Work */}
-            {step === 3 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: BRIGHT, fontFamily: ar, margin: 0 }}>الكورسات والمشاريع</h2>
-                <p style={{ fontSize: 12, color: MUTED, margin: 0, fontFamily: ar }}>أضف كورسات التطوير الذاتي (اختياري)</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <input value={courseForm.name} onChange={e => setCourseForm({ ...courseForm, name: e.target.value })} placeholder="اسم الكورس" style={inputStyle} />
-                  <input value={courseForm.platform} onChange={e => setCourseForm({ ...courseForm, platform: e.target.value })} placeholder="المنصة (Udemy...)" style={inputStyle} />
-                </div>
-                <button type="button" onClick={() => { if (!courseForm.name.trim()) return; setCourses([...courses, courseForm]); setCourseForm({ name: '', platform: '', totalLessons: 20 }); }} style={{ padding: '10px', borderRadius: 8, background: `${CYAN}15`, border: `1px solid ${CYAN}25`, color: CYAN, cursor: 'pointer', fontSize: 13, fontFamily: ar, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Plus size={14} /> إضافة كورس
-                </button>
-                {courses.map((c, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, background: BG, border: `1px solid ${BORDER}` }}>
-                    <span style={{ fontSize: 13, color: TEXT }}>{c.name} — {c.platform}</span>
-                    <button type="button" onClick={() => setCourses(courses.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED }}><Trash2 size={14} /></button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Step 4: Habits */}
-            {step === 4 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: BRIGHT, fontFamily: ar, margin: 0 }}>العادات اليومية</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {habits.map((h, i) => (
-                    <button key={i} type="button" onClick={() => setHabits(habits.map((x, j) => j === i ? { ...x, selected: !x.selected } : x))} style={{
-                      padding: '10px 14px', borderRadius: 8, cursor: 'pointer', textAlign: 'right', fontFamily: ar,
-                      background: h.selected ? `${CYAN}15` : 'transparent',
-                      border: `1px solid ${h.selected ? CYAN : BORDER}`,
-                      color: h.selected ? CYAN : MUTED, fontSize: 13,
-                      display: 'flex', alignItems: 'center', gap: 8,
-                    }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 4, background: h.selected ? CYAN : 'transparent', border: `1px solid ${h.selected ? CYAN : BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {h.selected && <Check size={11} color="#000E30" />}
-                      </div>
-                      {h.nameAr}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input value={customHabit} onChange={e => setCustomHabit(e.target.value)} placeholder="عادة مخصصة..." style={{ ...inputStyle, flex: 1 }} />
-                  <button type="button" onClick={() => { if (!customHabit.trim()) return; setHabits([...habits, { name: customHabit, nameAr: customHabit, selected: true }]); setCustomHabit(''); }} style={{ padding: '10px 16px', borderRadius: 8, background: `${CYAN}15`, border: `1px solid ${CYAN}25`, color: CYAN, cursor: 'pointer' }}>
-                    <Plus size={16} />
+          {step === 4 && (
+            <div className="space-y-5">
+              <StepTitle title="العادات اليومية" text="اختار العادات اللي عايز تتابعها من أول يوم." />
+              <div className="grid gap-2 sm:grid-cols-2">
+                {habits.map((habit, index) => (
+                  <button
+                    type="button"
+                    key={`${habit.name}-${index}`}
+                    onClick={() => setHabits((current) => current.map((item, i) => i === index ? { ...item, selected: !item.selected } : item))}
+                    className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-right text-sm font-bold transition ${habit.selected ? "border-sky-400/40 bg-sky-400/10 text-sky-200" : "border-white/10 text-slate-400 hover:bg-white/[0.04]"}`}
+                  >
+                    <span className={`grid h-5 w-5 place-items-center rounded border ${habit.selected ? "border-sky-300 bg-sky-300 text-slate-950" : "border-white/15"}`}>
+                      {habit.selected && <Check size={13} />}
+                    </span>
+                    {habit.nameAr}
                   </button>
-                </div>
+                ))}
               </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+              <div className="flex gap-2">
+                <input className="field-input" value={customHabit} onChange={(e) => setCustomHabit(e.target.value)} placeholder="عادة مخصصة..." />
+                <button type="button" onClick={() => { if (!customHabit.trim()) return; setHabits((current) => [...current, { name: customHabit.trim(), nameAr: customHabit.trim(), selected: true }]); setCustomHabit(""); }} className="rounded-lg bg-sky-400 px-4 text-slate-950 hover:bg-sky-300">
+                  <Plus size={18} />
+                </button>
+              </div>
+            </div>
+          )}
 
-        {/* Navigation */}
-        <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+          {error && <div className="mt-5 rounded-lg border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+        </section>
+
+        <footer className="mt-5 flex gap-3">
           {step > 0 && (
-            <button type="button" onClick={() => setStep(step - 1)} style={{ padding: '12px 20px', borderRadius: 10, background: 'transparent', border: `1px solid ${BORDER}`, color: MUTED, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
-              <ChevronRight size={16} /> رجوع
+            <button type="button" onClick={() => { setError(""); setStep((current) => current - 1); }} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-5 py-3 text-sm font-bold text-slate-300 hover:bg-white/[0.04]">
+              <ChevronRight size={16} />
+              رجوع
             </button>
           )}
-          <button type="button" disabled={!canNext() || loading} onClick={() => step < 4 ? setStep(step + 1) : handleFinish()} style={{
-            flex: 1, padding: '14px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: (!canNext() || loading) ? 'not-allowed' : 'pointer',
-            background: (!canNext() || loading) ? MUTED : CYAN, border: 'none', color: '#000E30',
-            fontFamily: ar, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            boxShadow: canNext() && !loading ? `0 0 20px ${CYAN}30` : 'none',
-          }}>
-            {loading ? 'جاري الحفظ...' : step < 4 ? <><span>التالي</span><ChevronLeft size={16} /></> : <><Sparkles size={16} /><span>ابدأ رحلتك</span></>}
+          <button type="button" onClick={next} disabled={loading} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-sky-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-sky-300 disabled:cursor-not-allowed disabled:bg-slate-600">
+            {loading ? "جاري الحفظ..." : step < steps.length - 1 ? (
+              <>
+                التالي
+                <ChevronLeft size={16} />
+              </>
+            ) : (
+              <>
+                <Sparkles size={16} />
+                ابدأ رحلتك
+              </>
+            )}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', borderRadius: 8, fontSize: 13,
-  background: BG, border: `1px solid ${BORDER}`, color: BRIGHT,
-  outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
-};
+function StepTitle({ title, text }: { title: string; text: string }) {
+  return (
+    <div>
+      <h2 className="text-2xl font-black">{title}</h2>
+      <p className="mt-2 text-sm leading-7 text-slate-400">{text}</p>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-bold text-slate-400">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function ChoiceGroup({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<string | [string, string]>;
+}) {
+  return (
+    <div>
+      <div className="mb-2 text-sm font-bold text-slate-300">{label}</div>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const optionValue = Array.isArray(option) ? option[0] : option;
+          const optionLabel = Array.isArray(option) ? option[1] : option;
+          return (
+            <button
+              type="button"
+              key={optionValue}
+              onClick={() => onChange(optionValue)}
+              className={`rounded-lg border px-4 py-2 text-sm font-bold transition ${value === optionValue ? "border-sky-400/40 bg-sky-400/10 text-sky-200" : "border-white/10 text-slate-400 hover:bg-white/[0.04]"}`}
+            >
+              {optionLabel}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function AddButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-3 text-sm font-black text-sky-300 hover:bg-sky-400/15">
+      <Plus size={16} />
+      {children}
+    </button>
+  );
+}
+
+function List({ items, onDelete }: { items: string[]; onDelete: (index: number) => void }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="grid gap-2">
+      {items.map((item, index) => (
+        <div key={`${item}-${index}`} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-300">
+          <span className="truncate">{item}</span>
+          <button type="button" onClick={() => onDelete(index)} className="rounded-md p-1 text-red-300/70 hover:bg-red-400/10 hover:text-red-300">
+            <Trash2 size={15} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}

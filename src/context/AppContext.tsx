@@ -4,6 +4,7 @@ import { EMPTY_STATE } from '../constants';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
+import { parseStoredAppState, resolveStoredState, sanitizeAppState } from '../lib/app-state';
 
 interface AppContextType {
   state: AppState;
@@ -57,6 +58,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const initialized = useRef(false);
   const skipSave = useRef(false);
 
+  const readLocalState = (): AppState | null => {
+    return parseStoredAppState(localStorage.getItem('itqan_state'));
+  };
+
   // Auth listener
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -65,6 +70,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!user) {
         setState(EMPTY_STATE);
         initialized.current = false;
+        localStorage.removeItem('itqan_state');
       }
     });
     return () => unsub();
@@ -75,24 +81,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!currentUser) return;
     initialized.current = false;
     getDoc(doc(db, 'users', currentUser.uid)).then((snap) => {
+      const localState = readLocalState();
       if (snap.exists()) {
         skipSave.current = true;
-        const savedState = snap.data() as AppState;
-        const onboardingCompleted =
-          savedState.profile?.onboardingCompleted ?? Boolean(savedState.profile?.name);
-
-        setState(() => ({
-          ...EMPTY_STATE,
-          ...savedState,
-          profile: {
-            ...EMPTY_STATE.profile,
-            ...savedState.profile,
-            onboardingCompleted,
-          },
-        }));
+        setState(resolveStoredState(snap.data(), localState).state);
+      } else if (localState) {
+        skipSave.current = true;
+        setState(resolveStoredState(null, localState).state);
       } else if (currentUser.displayName) {
         skipSave.current = true;
-        setState(() => ({
+        setState(() => sanitizeAppState({
           ...EMPTY_STATE,
           profile: {
             ...EMPTY_STATE.profile,
@@ -107,11 +105,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Save to Firestore + localStorage on state change
   useEffect(() => {
+    if (!authReady || !currentUser || !initialized.current) return;
     localStorage.setItem('itqan_state', JSON.stringify(state));
-    if (!initialized.current || !currentUser) return;
     if (skipSave.current) { skipSave.current = false; return; }
     setDoc(doc(db, 'users', currentUser.uid), state, { merge: true }).catch(console.error);
-  }, [state, currentUser]);
+  }, [state, currentUser, authReady]);
 
   // ===== SUBJECTS =====
   const addSubject = (s: Omit<AppState['subjects'][0], 'id'>) =>
@@ -188,7 +186,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addFocusSession = (s: Omit<AppState['focusSessions'][0], 'id'>) =>
     setState(p => ({ ...p, focusSessions: [...p.focusSessions, { ...s, id: uid() }] }));
 
-  const resetState = (newState: AppState) => setState(newState);
+  const resetState = (newState: AppState) => setState(sanitizeAppState(newState));
 
   if (!authReady) {
     return (
